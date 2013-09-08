@@ -1,0 +1,4 @@
+#!/bin/sh
+
+$bin/chomp-simplicial $examples/simplex.simp
+

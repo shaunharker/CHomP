@@ -1,0 +1,3 @@
+#!/bin/sh
+
+$bin/chomp-cubical $examples/square.cub $examples/squarewithhole.cub

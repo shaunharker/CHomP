@@ -1,0 +1,3 @@
+#!/bin/sh
+
+$bin/chomp-matrix $examples/segment.mat
