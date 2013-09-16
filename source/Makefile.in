@@ -315,7 +315,7 @@ chompinclude_HEADERS = \
 
 
 # TODO: I think these are now part of boost, but in differently-named files
-boostincludedir = $(includedir)/chomp/boost
+boostincludedir = $(includedir)/chomp/boost/serialization
 boostinclude_HEADERS = \
 	../include/boost/serialization/unordered_set.hpp \
 	../include/boost/serialization/unordered_map.hpp \
