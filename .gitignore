@@ -2,3 +2,8 @@ autom4te.cache
 chomp-*.tar.gz
 .#.*
 *~
+Makefile
+config.log
+config.status
+*/.deps/
+source/config.h
