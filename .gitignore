@@ -7,3 +7,11 @@ config.log
 config.status
 */.deps/
 source/config.h
+*.o
+source/chomp-cubical
+source/chomp-matrix
+source/chomp-simplicial
+source/greyscale-to-cubical
+source/stamp-h1
+tests/*log
+tests/*trs
