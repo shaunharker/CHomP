@@ -1,5 +1,6 @@
 chomp-rutgers -- computational homology software
 
+See "LICENSE" for license details.
 See "INSTALL" for installation notes.
 
 Run
@@ -8,7 +9,3 @@ to see tests.
 
 Please e-mail Shaun Harker sharker81@gmail.com
 to for problems or feature requests.
-
-License Information
-This project includes a copy of CImg.h, governed by the CeCILL-C license.
-See CImg.h for details.
