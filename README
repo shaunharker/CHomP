@@ -1,6 +1,6 @@
 chomp-rutgers -- computational homology software
 
-See "LICENSE" for license details.
+See "COPYING" for license details.
 See "INSTALL" for installation notes.
 
 Run
@@ -8,4 +8,4 @@ Run
 to see tests.
 
 Please e-mail Shaun Harker sharker81@gmail.com
-to for problems or feature requests.
+about problems or feature requests.
