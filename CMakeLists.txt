@@ -37,4 +37,3 @@ add_test( square ../tests/square.test ${bin} ${examples})
 add_test( square_relative ../tests/square_relative.test ${bin} ${examples})
 add_test( square_withhole ../tests/square_withhole.test ${bin} ${examples})
 
-message ( "For a graphical test, type: ./build/bingreyscale-to-cubical ./examples/rubik.jpg 128 ./examples/rubik.cub");

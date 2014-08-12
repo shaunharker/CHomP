@@ -14,7 +14,7 @@ if [ $# -ge 1 ]; then
         PREFIX=`pwd -P`
     fi
     echo "CHomP will be installed in '${PREFIX}'"    
-    ARGUMENT=-DCMAKE_INSTALL_PREFIX=${CHOMP_INSTALL_PREFIX}
+    ARGUMENT=-DCMAKE_INSTALL_PREFIX=${PREFIX}
 fi
 
 cd ${CUR_DIR}
@@ -24,4 +24,7 @@ cd build
 cmake $ARGUMENT ..
 make
 make install
-make test
+make test || echo "One or more tests failed.\n"
+
+echo "For a graphical test, type: ./build/bin/chomp-greyscale-to-cubical .\
+/examples/rubik.jpg 128 ./examples/rubik.cub"
