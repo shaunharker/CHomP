@@ -1,4 +1,2 @@
 #!/bin/sh
-
-$bin/chomp-matrix $examples/circle.mat
-
+$1/chomp-matrix $2/circle.mat

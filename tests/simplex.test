@@ -1,4 +1,3 @@
 #!/bin/sh
 
-$bin/chomp-simplicial $examples/simplex.simp
-
+$1/chomp-simplicial $2/simplex.simp
