@@ -1,6 +1,0 @@
-#!/bin/sh
-
-# waits for the user to close window -- not a good automatted test
-echo For a visual test try
-echo greyscale-to-cubical ./examples/rubik.jpg 128 ./examples/rubik.cub
-exit 0

@@ -24,3 +24,4 @@ cd build
 cmake $ARGUMENT ..
 make
 make install
+make test

@@ -28,12 +28,13 @@ install(DIRECTORY include/ DESTINATION include/ )
 
 # Tests
 enable_testing()
-set(bin "./build/bin" )
-set(examples "./examples")
-add_test( circle tests/circle.test ${bin} ${examples})
-add_test( greyscale tests/greyscale_to_cubical.test ${bin} ${examples})
-add_test( rubik tests/segment.test ${bin} ${examples})
-add_test( simplex tests/simplex.test ${bin} ${examples})
-add_test( square tests/square.test ${bin} ${examples})
-add_test( square_relative tests/square_relative.test ${bin} ${examples})
-add_test( square_withhole tests/square_withhole.test ${bin} ${examples})
+set(bin ${CMAKE_BINARY_DIR}/bin )
+set(examples "../examples")
+add_test( circle ../tests/circle.test ${bin} ${examples})
+add_test( rubik ../tests/segment.test ${bin} ${examples})
+add_test( simplex ../tests/simplex.test ${bin} ${examples})
+add_test( square ../tests/square.test ${bin} ${examples})
+add_test( square_relative ../tests/square_relative.test ${bin} ${examples})
+add_test( square_withhole ../tests/square_withhole.test ${bin} ${examples})
+
+message ( "For a graphical test, type: ./build/bingreyscale-to-cubical ./examples/rubik.jpg 128 ./examples/rubik.cub");
