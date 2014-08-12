@@ -60,6 +60,8 @@ public:
   coboundary ( Chain * output, const Chain & input ) const;
   
   bool acyclic ( void ) /* const */;
+  bool trivial ( void ) /* const */;
+  bool acyclic_or_trivial ( void ) /* const */;
   
   Chain preboundary ( const Chain & input ) /* const */;
   
@@ -189,20 +191,61 @@ inline void FiberComplex::project ( Chain * output,
   }
   output -> dimension () = dim;
 }
-
-inline bool FiberComplex::acyclic ( void ) /* const */ {
-  Generators_t gen = MorseGenerators ( *this );
-  bool result = true;
-  if ( gen [ 0 ] . size () > 1 ) result = false;
-  for ( int d = 1; d <= dimension (); ++ d ) {
-    if ( gen [ d ] . size () > 0 ) result = false;
+  
+  
+  
+  inline bool FiberComplex::trivial ( void ) /* const */ {
+    Generators_t gen = MorseGenerators ( *this );
+    //std::cout << "acyclic:\n";
+    //std::cout << gen . size () << " and " << dimension () << "\n";
+    assert ( (int) gen . size () == dimension () + 1 );
+    for ( int d = 0; d <= dimension (); ++ d ) {
+      if ( gen [ d ] . size () > 0 ) return false;
+    }
+    return true;
   }
-  //std::cout << "Fiber acyclic? " << (result ? "true" : "false") << "\n";
-  //for ( int d = 0; d <= dimension (); ++ d ) { std::cout << gen [ d ] . size () << " "; }
-  //std::cout << "\n";
+  
+  inline bool FiberComplex::acyclic ( void ) /* const */ {
+     //std::cout << "Fiber dimension = " << dimension () << " Fiber size = " << size () << "\n";
 
-  return result;
-}
+    Generators_t gen = MorseGenerators ( *this );
+    //std::cout << "acyclic:\n";
+    //std::cout << gen . size () << " and " << dimension () << "\n";
+    assert ( (int) gen . size () == dimension () + 1 );
+    bool result = true;
+    if ( gen . size () == 0 ) result = false;
+    if ( gen [ 0 ] . size () != 1 ) result = false;
+    for ( int d = 1; d <= dimension (); ++ d ) {
+      if ( gen [ d ] . size () > 0 ) result = false;
+    }
+    // DEBUG BEGIN
+    /*
+    if ( not result ) {
+      std::cout << "FiberComplex::acyclic. gen.size=" << 
+        gen . size () << " and dim=" << dimension () << "\n";
+      for ( int d = 0; d <= dimension (); ++ d ) {
+        std::cout << gen [ d ] . size () << " ";
+      }
+      std::cout << "\n";
+      std::cout << "Fiber size = " << size () << "\n";
+    }
+    */
+    // DEBUG END
+    return result;
+  }
+  
+  inline bool FiberComplex::acyclic_or_trivial ( void ) /* const */ {
+    Generators_t gen = MorseGenerators ( *this );
+    //std::cout << "acyclic:\n";
+    //std::cout << gen . size () << " and " << dimension () << "\n";
+    assert ( (int) gen . size () == dimension () + 1 );
+    if ( gen . size () == 0 ) return true;
+    if ( gen [ 0 ] . size () > 1 ) return false;
+    for ( int d = 1; d <= dimension (); ++ d ) {
+      if ( gen [ d ] . size () > 0 ) return false;
+    }
+    return true;
+  }
   
 inline Chain FiberComplex::preboundary
 ( const Chain & input ) /* const */ {

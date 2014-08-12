@@ -9,9 +9,12 @@
 #include <vector>
 #include <cassert>
 
+#include <boost/functional/hash.hpp>
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/vector.hpp"
 #include "boost/foreach.hpp"
+
+#include "chomp/Real.h"
 
 namespace chomp {
 
@@ -19,7 +22,6 @@ namespace chomp {
  * Rect *
  *********/
 
-typedef double Real;
 
 class Rect {
 public:
@@ -28,6 +30,9 @@ public:
   Rect ( void ) {};
   Rect ( unsigned int size ) { lower_bounds . resize ( size );
                                 upper_bounds . resize ( size ); }
+  unsigned int dimension ( void ) const {
+    return lower_bounds . size ();
+  }
   Rect ( unsigned int size, const Real & value ) 
   { lower_bounds . resize ( size, value );
     upper_bounds . resize ( size, value ); }
@@ -78,12 +83,48 @@ private:
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
-std::ostream & operator << ( std::ostream & output_stream, const Rect & print_me );
+inline Rect operator * ( double scalar, const Rect & rhs ) {
+    Rect result = rhs;
+    int d = rhs . dimension ();
+    for ( int i = 0; i < d; ++ i ) {
+      result . lower_bounds [ i ] *= scalar;
+      result . upper_bounds [ i ] *= scalar;
+    }
+    return result;
+  }
+  
+inline Rect operator + ( const Rect & lhs, const Rect & rhs ) {
+    // SHOULD THROW
+    Rect result = lhs;
+    int d = rhs . dimension ();
+    for ( int i = 0; i < d; ++ i ) {
+      result . lower_bounds [ i ] += rhs . lower_bounds [ i ];
+      result . upper_bounds [ i ] += rhs . upper_bounds [ i ];
+    }
+    return result;
+  }
+  
+inline std::ostream & operator << ( std::ostream & output_stream, const Rect & print_me );
 
-inline bool operator==(Rect x, Rect y) {
-  return x.lower_bounds == y.lower_bounds && x.upper_bounds == y.upper_bounds;
-}
-
+  // We cast to float, assuming that == testing is for hashing
+  inline bool operator==(Rect x, Rect y) {
+    for ( size_t d = 0; d < x . dimension (); ++ d ) {
+      if ( (float) x . lower_bounds [ d ] != (float) y . lower_bounds [ d ] ) return false;
+      if ( (float) x . upper_bounds [ d ] != (float) y . upper_bounds [ d ] ) return false;
+    }
+    return true;
+  }
+  
+inline std::size_t hash_value(Rect const& x)
+  {
+    std::size_t seed = 0;
+    for ( size_t d = 0; d < x . dimension (); ++ d ) {
+      boost::hash_combine(seed, (float) x . lower_bounds [ d ] );
+      boost::hash_combine(seed, (float) x . upper_bounds [ d ] );
+    }
+    return seed;
+  }
+  
 ///////////// Definitions
 
 // really bad temporary solution

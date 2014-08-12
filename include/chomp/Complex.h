@@ -6,6 +6,8 @@
 #ifndef CHOMP_COMPLEX_H
 #define CHOMP_COMPLEX_H
 
+#undef Complex
+
 #include <vector>
 #include <utility>
 

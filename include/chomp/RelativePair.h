@@ -2,8 +2,8 @@
 // Shaun Harker
 // 9/16/11
 
-#ifndef CHOMP_RELATIVECOMPLEX_H
-#define CHOMP_RELATIVECOMPLEX_H
+#ifndef CHOMP_RELATIVEPAIRCOMPLEX_H
+#define CHOMP_RELATIVEPAIRCOMPLEX_H
 
 #include "chomp/Complex.h"
 #include "chomp/CubicalComplex.h"

@@ -111,7 +111,6 @@ template <>
 inline CustomChain< std::vector < Term > > & 
 operator += ( CustomChain< std::vector < Term > > & lhs, 
              const Term & rhs ) {
-  typedef std::vector<Term> Container;
   lhs () . push_back ( rhs );
   return lhs;
 }

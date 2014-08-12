@@ -31,12 +31,13 @@ public:
   }
 	int64_t & value ( void ) { return value_; };
 	const int64_t & value ( void ) const { return value_; };
+	int64_t balanced_value ( void ) const;
 	Zp & operator += ( const Zp & rhs );
   Zp & operator *= ( const Zp & rhs );
   bool operator < ( const Zp & rhs ) const { return false; } // :(  Bezout in SmithNormalForm requires this
                                              // That needs to be fixed, then this can 
                                              // be removed.
-                                             /// The serialization method.
+  /// The serialization method.
   friend class boost::serialization::access;
   template < class Archive >
   void serialize ( Archive & ar , const unsigned int version ) {
@@ -46,8 +47,23 @@ public:
 
 template < Prime p >
 std::ostream & operator << ( std::ostream & outstream, const Zp<p> & print_me ) {
-	outstream << print_me . value ();
+	outstream << print_me . balanced_value ();
 	return outstream;
+}
+
+template < Prime p >
+int64_t Zp<p>::balanced_value ( void ) const {
+	int64_t v = value_;
+	/*
+	// DEBUG
+	if ( v > value_ || v < 0 ) {
+		std::cout << "Zp coefficient unexpectedly out of range.\n";
+		abort ();
+	}
+	// END DEBUG
+	*/
+	if ( v > p / 2 ) v -= p;
+	return v;
 }
 
 // constructors

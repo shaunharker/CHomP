@@ -11,6 +11,7 @@
 #ifndef CHOMP_SPARSEMATRIX_H
 #define CHOMP_SPARSEMATRIX_H
 
+#include <iomanip>
 #include <cstdlib>
 #include <vector>
 #include <deque>
@@ -35,7 +36,7 @@ namespace chomp {
 
 // Sparse Matrix Data Structure
 
-typedef std::pair < int, int > Position;
+typedef std::pair < int64_t, int64_t > Position;
 
 // Forward Declarations
 template < class R > struct Element;
@@ -44,7 +45,7 @@ template < class R > class SparseMatrix;
 // struct Element
 template < class R >
 struct Element {
-  typedef int size_type;
+  typedef int64_t size_type;
   Position position;
   R value;
   size_type left;
@@ -92,8 +93,8 @@ SparseMatrix<R> operator - (const SparseMatrix<R> & rhs,
                                const SparseMatrix<R> & lhs);
 
 // forward declare
-template < class R >
-void print_matrix ( const SparseMatrix<R> & print_me );
+template < class Matrix >
+void print_matrix ( const Matrix & print_me );
     
 // class Sparse Matrix
 template < class R >
@@ -101,21 +102,164 @@ class SparseMatrix {
 public:
   // typedefs
   typedef R value_type;
-  typedef int Index;
-  typedef int size_type;
+  typedef R entry_type;
+  typedef int64_t MatrixPosition;
+  typedef int64_t size_type;
 private:
   
+
+public:
+  
+  /// erase 
+  ///   Set the entry corresponding to MatrixPosition "index"
+  ///   to zero
+  void erase ( const MatrixPosition index );
+
+  /// find
+  ///    Find the MatrixPosition corresponding to (i,j)
+  ///    If there is no such MatrixPosition (i.e. A(i,j) == 0 )
+  ///    then return end ()
+  MatrixPosition find ( const size_type i, const size_type j ) const;
+  
+  /// read 
+  ///     Return the value at the (i,j) position
+  R read ( const size_type i, const size_type j ) const;
+
+  /// read
+  ///     Return the value at the position 
+  ///     represented by MatrixPosition "index"
+  R read ( MatrixPosition index ) const;
+
+  /// write ( i, j, value, insert = false)
+  ///   Set (i,j) entry to "value".
+  ///     Note: If it is known in advance that (i,j) holds zero before the call, 
+  ///           then "insert" may be set to true (it is false by default)
+  ///           which results in a speedup.
+  MatrixPosition 
+  write ( const size_type i, const size_type j, 
+          const R value, bool insert = false ); 
+  
+  /// write ( MatrixPosition index, const R value )
+  ///   Copy "value" to the position represented by "index"
+  MatrixPosition 
+  write ( MatrixPosition index, const R value );
+  
+  // begin and end
+  MatrixPosition row_begin ( const size_type i ) const;
+  MatrixPosition column_begin ( const size_type j ) const;
+  MatrixPosition end ( void ) const;
+  
+  // traversal. row_advance advances within a row, column_advance within a column
+  void row_advance ( MatrixPosition & index ) const;
+  void column_advance ( MatrixPosition & index ) const;
+  
+  // row and column (to learn position)
+  size_type row ( const MatrixPosition index ) const;
+  size_type column ( const MatrixPosition index ) const;
+  
+  // add to some position
+  void add ( size_type i, size_type j, const R value );
+  
+  /// SparseMatrix
+  ///   Default constructor 
+  SparseMatrix ( void );
+
+  /// SparseMatrix ( i, j )
+  ///   Construct matrix with shape i x j
+  SparseMatrix ( size_type i, size_type j );
+
+  /// SparseMatrix
+  ///    Copy constructor. Can convert types.
+  template < class T > SparseMatrix ( const T & copy_me );
+  
+  /// resize
+  ///    Change the shape of the matrix
+  void resize ( size_type i, size_type j );
+
+  /// size
+  ///   Report number of non-zero elements in
+  ///   the sparse matrix
+  size_type size ( void ) const; // sparsity size
+  
+  /// row_operation
+  ///   Multiply row i by a           
+  void row_operation (const R a, size_type i );
+
+  /// column_operation
+  ///   Multiply column j by a
+  void column_operation (const R a, size_type j );
+
+  /// similarity_operation
+  ///   Multiply row i by a and divide column i by a
+  void similarity_operation (const R a, size_type i);
+
+  /// row_operation
+  ///   Multiply  on the left by the matrix M
+  ///      where M_kk =  1  for  k \notin {i, j}
+  ///      and the {i,j}x{i,j} submatrix M_s is
+  ///         M_s = [ a b ]
+  ///               [ c d ]             
+  void row_operation (const R a, const R b,
+                      const R c, const R d,
+                      size_type i, size_type j );
+
+  /// column_operation
+  ///   Multiply  on the right by the matrix M
+  ///      where M_kk =  1  for  k \notin {i, j}
+  ///      and the {i,j}x{i,j} submatrix M_s is
+  ///         M_s = [ a c ]
+  ///               [ b d ]  
+  void column_operation (const R a, const R b,
+                         const R c, const R d,
+                         size_type i, size_type j );
+
+  /// similarity_operation
+  ///   Multiply  on the left by the matrix M
+  ///      where M_kk =  1  for  k \notin {i, j}
+  ///      and the {i,j}x{i,j} submatrix M_s is
+  ///         M_s = [ a b ]
+  ///               [ c d ] 
+  ///   and multiply on the right by the inverse of M
+  void similarity_operation (const R a, const R b,
+                             const R c, const R d,
+                             size_type i, size_type j );
+
+  /// swap_rows
+  ///    Swap row i and row j
+  void swap_rows ( const size_type i, const size_type j );
+
+  /// swap_columns
+  ///    Swap column i and column j
+  void swap_columns ( const size_type i, const size_type j );
+
+  /// number_of_rows
+  ///    Return number of rows in matrix
+  size_type number_of_rows ( void ) const;
+
+  /// number_of_columns
+  ///    Return number of columns in matrix
+  size_type number_of_columns ( void ) const;
+
+  /// row_size
+  ///     Return number of non-zero elements in row i
+  size_type row_size ( const size_type i ) const;
+
+  /// columns_size
+  ///     Return number of non-zero elements in column j  
+  size_type column_size ( const size_type j ) const;
+  
+
 public: // not friends with different templated versions, weirdly
   // data to store the Sparse Matrix
   std::vector < Element<R> > data_;
   // Garbage Collection structure
-  std::deque < Index > garbage_;
+  std::deque < MatrixPosition > garbage_;
   // data to assist in O(1) random access times
-  std::tr1::unordered_map < Position, Index, boost::hash< Position > > access_;
-  typedef std::tr1::unordered_map < Position, Index, boost::hash< Position > >::const_iterator access_iterator;
+  boost::unordered_map < Position, MatrixPosition, boost::hash< Position > > access_;
+  typedef boost::unordered_map < Position, MatrixPosition, boost::hash< Position > >::const_iterator access_iterator;
   // data to store the beginning of the rows and columns
-  std::vector < Index > row_begin_;
-  std::vector < Index > column_begin_;
+  std::vector < MatrixPosition > row_begin_;
+  std::vector < MatrixPosition > column_begin_;
   // data to store amount of non-zero elements per row and column
   std::vector < size_type > row_sizes_;
   std::vector < size_type > column_sizes_;
@@ -131,103 +275,19 @@ public: // not friends with different templated versions, weirdly
   std::deque < size_type > cache_B_S;
   size_type timestamp;
   // technicals
-  Index new_index ( void );
-  void delete_index ( const Index index );
-  void hash_check ( const Index index );
+  MatrixPosition new_index ( void );
+  void delete_index ( const MatrixPosition index );
+  void hash_check ( const MatrixPosition index );
   void increment_row_size ( const size_type i );
   void increment_column_size ( const size_type j );
   void decrement_row_size ( const size_type i );
   void decrement_column_size ( const size_type j );
+
   // friends
-  
   friend SparseMatrix<R> operator * <> ( const SparseMatrix<R> &, const SparseMatrix<R> & );
   friend SparseMatrix<R> operator + <> ( const SparseMatrix<R> &, const SparseMatrix<R> & );
   friend SparseMatrix<R> operator - <> ( const SparseMatrix<R> &, const SparseMatrix<R> & );
   
-public:
-  
-  // erase, find
-  void erase ( const Index index );
-  Index find ( const size_type i, const size_type j ) const;
-  
-  // read, write
-  R read ( const size_type i, const size_type j ) const;
-  R read ( Index index ) const;
-  Index write ( const size_type i, const size_type j,                 // notice the optimization argument
-               const R value, bool insert = false );  // it prevents the search when set to true
-  Index write ( Index index, const R value );
-  
-  // begin and end
-  Index row_begin ( const size_type i ) const;
-  Index column_begin ( const size_type j ) const;
-  Index end ( void ) const;
-  
-  // traversal. row_advance advances within a row, column_advance within a column
-  void row_advance ( Index & index ) const;
-  void column_advance ( Index & index ) const;
-  
-  // row and column (to learn position)
-  size_type row ( const Index index ) const;
-  size_type column ( const Index index ) const;
-  
-  // add to some position
-  void add ( size_type i, size_type j, const R value );
-  
-  // constructors 
-  SparseMatrix ( void );
-  SparseMatrix ( size_type i, size_type j );
-  template < class T > SparseMatrix ( const T & copy_me );
-  
-  // size and resize
-  void resize ( size_type i, size_type j );
-  size_type size ( void ) const; // sparsity size
-  
-  // linear algebra
-  void row_operation (const R a, const R b,
-                      const R c, const R d,
-                      size_type i, size_type j );
-  
-  void column_operation (const R a, const R b,
-                         const R c, const R d,
-                         size_type i, size_type j );
-  
-  // keep
-  void swap_rows ( const size_type i, const size_type j );
-  void swap_columns ( const size_type i, const size_type j );
-  size_type number_of_rows ( void ) const;
-  size_type number_of_columns ( void ) const;
-  size_type row_size ( const size_type i ) const;
-  size_type column_size ( const size_type j ) const;
-  
-    
-    void sanityCheck ( void ) const {
-        std::cout << "sanityCheck.\n";
-        std::cout << "data_.size() = " << data_ . size () << "\n";
-        BOOST_FOREACH ( const Element<R> & e, data_ ) {
-            std::cout << "(" << e . position . first << ", " << e . position . second << "; " << e  . value << ") ";
-        }
-        std::cout << "\n";
-        std::cout << "access_.size() = " << access_ . size () << "\n";
-        typedef std::pair < Position, Index > access_value_t;
-        BOOST_FOREACH ( const access_value_t & v, access_ ) {
-            std::cout << "(" << v . first . first << ", " << v. first . second << "; " << v  . second << ") ";
-        }
-        std::cout << "\n";
-        std::cout << "row_sizes_.size() = " << row_sizes_ . size () << "\n";
-        for ( unsigned int i = 0; i < row_sizes_ . size (); ++ i ) {
-            std::cout << "(" << i << ", " << row_sizes_ [ i ] << "\n";
-        }
-        std::cout << "\n";
-        std::cout << "column_sizes_.size() = " << column_sizes_ . size () << "\n";
-        for ( unsigned int i = 0; i < column_sizes_ . size (); ++ i ) {
-            std::cout << "(" << i << ", " << column_sizes_ [ i ] << "\n";
-        }
-        std::cout << "row_names_.size() = " << row_names_ . size () << "\n";
-
-        std::cout << "column_sizes_.size() = " << column_names_ . size () << "\n";
-
-    }
-
   /// The serialization method.
   friend class boost::serialization::access;  
   template < class Archive >
@@ -235,50 +295,51 @@ public:
     // TODO: More efficient to split into save/load routines, saving has unnecessary operations
       //std::cout << "Serializing SparseMatrix\n";
     std::vector < Element<R> > data_copy = data_;
-    int number_of_rows = row_sizes_ . size ();
-    int number_of_columns = column_sizes_ . size ();
+    size_type number_of_rows = row_sizes_ . size ();
+    size_type number_of_columns = column_sizes_ . size ();
     ar & boost::serialization::make_nvp("DATA",data_copy);
     ar & boost::serialization::make_nvp("NUMROWS",number_of_rows);
     ar & boost::serialization::make_nvp("NUMCOLS",number_of_columns);
     resize ( number_of_rows, number_of_columns );
     BOOST_FOREACH ( const Element<R> & e, data_copy ) {
       write ( e . position . first, e . position . second, e . value );
-    }
-    
-#if 0
-// THERE WAS A BOOST INCOMPATIBILITY PROBLEM. UNORDERED MAPS DO NOT SERIALIZE PROPERLY.
-    ar & data_;
-    ar & garbage_;
-    // data to assist in O(1) random access times
-    ar & access_;
-    // data to store the beginning of the rows and columns
-    ar & row_begin_;
-    ar & column_begin_;
-   
-    ar & row_sizes_;
-    ar & column_sizes_;
-         // data to handle quick permutations of rows and columns
-    ar & row_names_;
-    ar & column_names_;
-    // data to handle quick linear algebra
-    ar & cache_A;
-    ar & cache_A_TS;
-    ar & cache_A_S;
-    ar & cache_B;
-    ar & cache_B_TS;
-    ar & cache_B_S;
-    ar & timestamp;
-#endif
-    
+    }    
   }
-    
+
+/// sanityCheck
+///   debugging code    
+  void sanityCheck ( void ) const {
+    std::cout << "sanityCheck.\n";
+    std::cout << "data_.size() = " << data_ . size () << "\n";
+    BOOST_FOREACH ( const Element<R> & e, data_ ) {
+        std::cout << "(" << e . position . first << ", " << e . position . second << "; " << e  . value << ") ";
+    }
+    std::cout << "\n";
+    std::cout << "access_.size() = " << access_ . size () << "\n";
+    typedef std::pair < Position, MatrixPosition > access_value_t;
+    BOOST_FOREACH ( const access_value_t & v, access_ ) {
+        std::cout << "(" << v . first . first << ", " << v. first . second << "; " << v  . second << ") ";
+    }
+    std::cout << "\n";
+    std::cout << "row_sizes_.size() = " << row_sizes_ . size () << "\n";
+    for ( size_type i = 0; i < row_sizes_ . size (); ++ i ) {
+        std::cout << "(" << i << ", " << row_sizes_ [ i ] << "\n";
+    }
+    std::cout << "\n";
+    std::cout << "column_sizes_.size() = " << column_sizes_ . size () << "\n";
+    for ( size_type i = 0; i < column_sizes_ . size (); ++ i ) {
+        std::cout << "(" << i << ", " << column_sizes_ [ i ] << "\n";
+    }
+    std::cout << "row_names_.size() = " << row_names_ . size () << "\n";
+    std::cout << "column_sizes_.size() = " << column_names_ . size () << "\n";
+  }
+
 };
 
-// Sparse Matrix Algorithms
 
-template < class R >
-void print_matrix ( const SparseMatrix<R> & print_me ) {
-  typedef int size_type;
+template < class Matrix >
+void print_matrix ( const Matrix & print_me ) {
+  typedef int64_t size_type;
   size_type I = print_me . number_of_rows ();
   size_type J = print_me . number_of_columns ();
   
@@ -286,44 +347,55 @@ void print_matrix ( const SparseMatrix<R> & print_me ) {
   for ( size_type i = 0; i < I; ++ i ) {
     std::cout << "[";
     for ( size_type j = 0; j < J; ++ j ) {
-      std::cout << print_me . read ( i, j ) << " ";
+      std::cout << std::setw(2) << print_me . read ( i, j ) << " ";
     } /* for */
     std::cout << "]\n";
   } /* for */
   //char c;
   //std::cin >> c;  
 }
-template < class R >
-void sane_matrix ( const SparseMatrix<R> & print_me ) {
-  typedef int size_type;
-  std::cout <<  "MATRIX SANITY CHECK\n";
+
+template < class Matrix >
+void sane_matrix ( const Matrix & print_me ) {
+  typedef typename Matrix::size_type size_type;
+  //std::cout <<  "MATRIX SANITY CHECK\n";
   size_type I = print_me . number_of_rows ();
   size_type J = print_me . number_of_columns ();
-  std::cout << "Checking rows.\n";
+  //std::cout << "Checking rows.\n";
   for ( size_type i = 0; i < I; ++ i ) {
-    int ind = print_me . row_begin ( i );
-    int count = 0;
-    while ( ind != -1 ) {
-      std::cout << "(" << print_me . row ( ind ) << ", " << print_me . column ( ind ) << "; " << print_me . read ( ind ) << " | " << ind << ") \n";
+    int64_t ind = print_me . row_begin ( i );
+    int64_t count = 0;
+    while ( ind != print_me . end () ) {
+      //std::cout << "(" << print_me . row ( ind ) << ", " << print_me . column ( ind ) << "; " << print_me . read ( ind ) << " | " << ind << ") \n";
+      if ( print_me . row ( ind ) != i ) {
+        std::cout << "Row iterator fault.\n";
+        throw std::logic_error ( "Row iterator fault.\n" );
+      }
       print_me . row_advance ( ind );
       ++ count;
     }
     if ( count != print_me . row_size ( i ) ) {
       std::cout << "Discrepancy on row i = " << i << "\n";
+      throw std::logic_error ( "Row size fault.\n" );
     }
   } /* for */
-  std::cout << "Checking columns.\n";
+  //std::cout << "Checking columns.\n";
 
   for ( size_type j = 0; j < J; ++ j ) {
-    int ind = print_me . column_begin ( j );
-    int count = 0;
-    while ( ind != -1 ) {
-      std::cout << "(" << print_me . row ( ind ) << ", " << print_me . column ( ind ) << "; " << print_me . read ( ind ) << " | " << ind << ") \n";
+    int64_t ind = print_me . column_begin ( j );
+    int64_t count = 0;
+    while ( ind != print_me . end () ) {
+      //std::cout << "(" << print_me . row ( ind ) << ", " << print_me . column ( ind ) << "; " << print_me . read ( ind ) << " | " << ind << ") \n";
+      if ( print_me . column ( ind ) != j ) {
+        std::cout << "Column iterator fault.\n";
+        throw std::logic_error ( "Column iterator fault.\n" );
+      }
       print_me . column_advance ( ind );
       ++ count;
     }
     if ( count != print_me . column_size ( j ) ) {
       std::cout << "Discrepancy on column j = " << j << "\n";
+      throw std::logic_error ( "Column size fault.\n" );
     }  
   } /* for */
   //char c;
@@ -374,32 +446,35 @@ namespace SparseMatrix_detail {
 }
 // Sparse Matrix Algorithm Definitions
 
-// Copy the submatrix with rows [i0, i1) and columns [j0, j1) into a new Sparse Matrix.
+/// submatrix (NOT IMPLEMENTED)
+/// Copy the submatrix with rows [i0, i1) 
+///                  and columns [j0, j1) into a new Sparse Matrix.
 template < class R >
-SparseMatrix<R> submatrix ( int i0, int i1, int j0, int j1, const SparseMatrix<R> & A ) {
+SparseMatrix<R> submatrix ( int64_t i0, int64_t i1, 
+                            int64_t j0, int64_t j1, 
+                            const SparseMatrix<R> & A ) {
   SparseMatrix<R> result;
   std::cout << "submatrix NOT IMPLEMENTED\n";
   return result;
 }
 
-#define REPORT(X,Y) std::cout << X << " = " << Y << "\n";
 
-// Multiply
+/// operator * (SparseMatrix overload)
 template < class R >
 SparseMatrix<R> operator * (const SparseMatrix<R> & lhs,
                                const SparseMatrix<R> & rhs) {
   //std::cout << " operator * \n";
   typedef SparseMatrix<R> Matrix;
-  typedef typename Matrix::Index Index;
+  typedef typename Matrix::MatrixPosition MatrixPosition;
   typedef typename Matrix::size_type size_type;
   
-  int I = lhs . number_of_rows ();
-  int K = lhs . number_of_columns ();
-  int J = rhs . number_of_columns ();
+  int64_t I = lhs . number_of_rows ();
+  int64_t K = lhs . number_of_columns ();
+  int64_t J = rhs . number_of_columns ();
   Matrix result ( I, J );
-  for ( int k = 0; k < K; ++ k ) {
-    Index left_column_index = lhs . column_begin ( k );
-    Index right_row_index = rhs . row_begin ( k );
+  for ( int64_t k = 0; k < K; ++ k ) {
+    MatrixPosition left_column_index = lhs . column_begin ( k );
+    MatrixPosition right_row_index = rhs . row_begin ( k );
     
     if ( lhs . column_size ( k ) < rhs . row_size ( k ) ) {
       left_column_index = lhs . column_begin ( k );
@@ -436,7 +511,7 @@ SparseMatrix<R> operator * (const SparseMatrix<R> & lhs,
   return result;
 }
 
-// Add
+/// operator + (SparseMatrix overload)
 template < class R >
 SparseMatrix<R> operator + (const SparseMatrix<R> & lhs,
                                const SparseMatrix<R> & rhs) {
@@ -445,7 +520,7 @@ SparseMatrix<R> operator + (const SparseMatrix<R> & lhs,
   return result;
 }
 
-// Subtract
+/// operator - (SparseMatrix overload)
 template < class R >
 SparseMatrix<R> operator - (const SparseMatrix<R> & lhs,
                                const SparseMatrix<R> & rhs) {
@@ -454,40 +529,39 @@ SparseMatrix<R> operator - (const SparseMatrix<R> & lhs,
   return result;
 }
 
-/* SparseMatrix<> Member Function Definitions */
-
-// For now I'm being inelegant about this
+/* SparseMatrix<> Method Definitions */
 
 template < class R >
-SparseMatrix<R>::SparseMatrix ( void ) {
+SparseMatrix<R>::
+SparseMatrix ( void ) {
   resize ( 0, 0 );
 }
 
 template < class R >
-SparseMatrix<R>::SparseMatrix ( int i, int j ) {
+SparseMatrix<R>::
+SparseMatrix ( int64_t i, int64_t j ) {
   resize ( i, j );
 }
 
-// when I do the templates using partial specialization, it doesn't work, 
-// so I replaced SparseMatrix < AnotherR > with T
-
 template < class R >
 template < class T >
-SparseMatrix<R>::SparseMatrix ( const T & copy_me ) :
-data_ ( copy_me . data_ . begin (), copy_me . data_ . end () ),
-garbage_ ( copy_me . garbage_ ), 
-access_ ( copy_me . access_ ),
-row_begin_ ( copy_me . row_begin_ ),
-column_begin_ ( copy_me . column_begin_ ),
-row_sizes_ ( copy_me . row_sizes_ ),
-column_sizes_ ( copy_me . column_sizes_ ),
-row_names_ ( copy_me . row_names_ ),
-column_names_ ( copy_me . column_names_ ) {
+SparseMatrix<R>::
+SparseMatrix ( const T & copy_me ) :
+  data_ ( copy_me . data_ . begin (), copy_me . data_ . end () ),
+  garbage_ ( copy_me . garbage_ ), 
+  access_ ( copy_me . access_ ),
+  row_begin_ ( copy_me . row_begin_ ),
+  column_begin_ ( copy_me . column_begin_ ),
+  row_sizes_ ( copy_me . row_sizes_ ),
+  column_sizes_ ( copy_me . column_sizes_ ),
+  row_names_ ( copy_me . row_names_ ),
+  column_names_ ( copy_me . column_names_ ) {
   resize ( copy_me . number_of_rows (), copy_me . number_of_columns () );
 }
 
 template < class R >
-void SparseMatrix<R>::resize ( int i, int j ) {
+void SparseMatrix<R>::
+resize ( int64_t i, int64_t j ) {
   row_begin_ . resize ( i, end () );
   column_begin_ . resize ( j, end () );
   row_sizes_ . resize ( i, 0 );
@@ -502,8 +576,10 @@ void SparseMatrix<R>::resize ( int i, int j ) {
 }
 
 template < class R >
-typename SparseMatrix<R>::Index SparseMatrix<R>::new_index ( void ) {
-  Index result;
+typename SparseMatrix<R>::MatrixPosition 
+SparseMatrix<R>::
+new_index ( void ) {
+  MatrixPosition result;
   // First we reclaim garbage space
   if ( not garbage_ . empty () ) {
     result = garbage_ . back ();
@@ -520,12 +596,14 @@ typename SparseMatrix<R>::Index SparseMatrix<R>::new_index ( void ) {
 }
 
 template < class R >
-void SparseMatrix<R>::delete_index ( const Index index ) {
+void SparseMatrix<R>::
+delete_index ( const MatrixPosition index ) {
   garbage_ . push_back ( index );
 }
 
 template < class R >
-void SparseMatrix<R>::hash_check ( const Index index ) {
+void SparseMatrix<R>::
+hash_check ( const MatrixPosition index ) {
   // TODO: Probably this could save some time with extra checks
   size_type i = row ( index );
   size_type j = column ( index );
@@ -536,13 +614,14 @@ void SparseMatrix<R>::hash_check ( const Index index ) {
   } /* if-else */
 } /* SparseMatrix<R>::hash_check */
 
-// TODO: put some hysteresis in the hash switching, lest you
-// can be attacked.
+// TODO: put some hysteresis in the hash switching, 
+//       to prevent adversarial conditions
 template < class R >
-void SparseMatrix<R>::increment_row_size ( const size_type i ) {
+void SparseMatrix<R>::
+increment_row_size ( const size_type i ) {
   ++ row_sizes_ [ i ];
   if ( row_sizes_ [ i ] == 1 + HASH_SWITCH ) {
-    Index index = row_begin ( i );
+    MatrixPosition index = row_begin ( i );
     while ( index != end () ) {
       hash_check ( index );
       row_advance ( index );
@@ -551,10 +630,11 @@ void SparseMatrix<R>::increment_row_size ( const size_type i ) {
 } /* SparseMatrix<R>::increment_row_size */
 
 template < class R >
-void SparseMatrix<R>::increment_column_size ( const size_type j ) {
+void SparseMatrix<R>::
+increment_column_size ( const size_type j ) {
   ++ column_sizes_ [ j ];
   if ( column_sizes_ [ j ] == 1 + HASH_SWITCH ) {
-    Index index = column_begin ( j );
+    MatrixPosition index = column_begin ( j );
     while ( index != end () ) {
       hash_check ( index );
       column_advance ( index );
@@ -563,10 +643,11 @@ void SparseMatrix<R>::increment_column_size ( const size_type j ) {
 } /* SparseMatrix<R>::increment_row_size */
 
 template < class R >
-void SparseMatrix<R>::decrement_row_size ( const size_type i ) {
+void SparseMatrix<R>::
+decrement_row_size ( const size_type i ) {
   -- row_sizes_ [ i ];
   if ( row_sizes_ [ i ] == HASH_SWITCH ) {
-    Index index = row_begin ( i );
+    MatrixPosition index = row_begin ( i );
     while ( index != end () ) {
       hash_check ( index );
       row_advance ( index );
@@ -578,7 +659,7 @@ template < class R >
 void SparseMatrix<R>::decrement_column_size ( const size_type j ) {
   -- column_sizes_ [ j ];
   if ( column_sizes_ [ j ] == HASH_SWITCH ) {
-    Index index = column_begin ( j );
+    MatrixPosition index = column_begin ( j );
     while ( index != end () ) {
       hash_check ( index );
       column_advance ( index );
@@ -588,7 +669,7 @@ void SparseMatrix<R>::decrement_column_size ( const size_type j ) {
 
 // erase, find
 template < class R >
-void SparseMatrix<R>::erase ( const Index index ) {
+void SparseMatrix<R>::erase ( const MatrixPosition index ) {
   // Repair the links
   //std::cout << "ERASING " << index << "\n";
   Element < R > element = data_ [ index ];
@@ -620,8 +701,8 @@ void SparseMatrix<R>::erase ( const Index index ) {
 }
 
 template < class R >
-typename SparseMatrix<R>::Index 
-SparseMatrix<R>::find ( const int i, const int j ) const {
+typename SparseMatrix<R>::MatrixPosition 
+SparseMatrix<R>::find ( const int64_t i, const int64_t j ) const {
   //std::cout << "Looking...\n";
   //static int find_count = 0;
   // Check the size of row i and the size of column j
@@ -636,7 +717,7 @@ SparseMatrix<R>::find ( const int i, const int j ) const {
   if ( r_size < c_size ) {
     // Search through row for (i, j)
     //std::cout << "row search\n";
-    Index index = row_begin ( i );
+    MatrixPosition index = row_begin ( i );
     while ( index != end () ) {
       if ( row ( index ) == i && column ( index ) == j ) {
         //std::cout << "found: " << find_count ++ << "\n";
@@ -649,7 +730,7 @@ SparseMatrix<R>::find ( const int i, const int j ) const {
   } else {
     // Search through column for (i, j)
     //std::cout << "column search\n";
-    Index index = column_begin ( j );
+    MatrixPosition index = column_begin ( j );
     while ( index != end () ) {
       //std::cout << "Magically, index " << index << " is connected downward to " << data_ [ index ] . down << "\n";
       if ( row ( index ) == i && column ( index ) == j ) {
@@ -666,20 +747,20 @@ SparseMatrix<R>::find ( const int i, const int j ) const {
 // read and write
 
 template < class R >
-R SparseMatrix<R>::read ( const int i, const int j ) const {
-  Index index = find ( i, j );
-  if ( index == end () ) return R ( 0 );
+R SparseMatrix<R>::read ( const int64_t i, const int64_t j ) const {
+  MatrixPosition index = find ( i, j );
   return read ( index );
 }
 
 template < class R >
-R SparseMatrix<R>::read ( const Index index ) const {
+R SparseMatrix<R>::read ( const MatrixPosition index ) const {
+  if ( index == end () ) return R ( 0 );
   return data_ [ index ] . value;
 }
 
 template < class R >
-typename SparseMatrix<R>::Index 
-SparseMatrix<R>::write ( const int i, const int j, const R value, bool insert ) {
+typename SparseMatrix<R>::MatrixPosition 
+SparseMatrix<R>::write ( const int64_t i, const int64_t j, const R value, bool insert ) {
  //////////////DEBUG BEGIN//////////////
  //std::cout << "Insert of (" << i << ", " << j << ")\n";
   /*
@@ -707,7 +788,7 @@ SparseMatrix<R>::write ( const int i, const int j, const R value, bool insert ) 
    }
   */
   ////////////////DEBUG END//////////////////
-  Index index;
+  MatrixPosition index;
   if ( not insert ) {
     index = find ( i, j );
     if ( index != -1 ) {
@@ -768,7 +849,7 @@ SparseMatrix<R>::write ( const int i, const int j, const R value, bool insert ) 
 }
 
 template < class R >
-typename SparseMatrix<R>::Index SparseMatrix<R>::write ( Index index, const R value ) {
+typename SparseMatrix<R>::MatrixPosition SparseMatrix<R>::write ( MatrixPosition index, const R value ) {
   if ( value == R ( 0 ) ) {
     erase ( index );
     return end ();
@@ -780,33 +861,33 @@ typename SparseMatrix<R>::Index SparseMatrix<R>::write ( Index index, const R va
 
 // begin and end
 template < class R >
-typename SparseMatrix<R>::Index 
-SparseMatrix<R>::row_begin ( const int i ) const {
+typename SparseMatrix<R>::MatrixPosition 
+SparseMatrix<R>::row_begin ( const int64_t i ) const {
   return row_begin_ [ i ];
 }
 
 template < class R >
-typename SparseMatrix<R>::Index 
-SparseMatrix<R>::column_begin ( const int j ) const {
+typename SparseMatrix<R>::MatrixPosition 
+SparseMatrix<R>::column_begin ( const int64_t j ) const {
   return column_begin_ [ j ];
 }
 
 template < class R >
-typename SparseMatrix<R>::Index 
+typename SparseMatrix<R>::MatrixPosition 
 SparseMatrix<R>::end ( void ) const {
   return -1;
 }
 
 // traversal
 template < class R >
-void SparseMatrix<R>::row_advance ( Index & index ) const {
+void SparseMatrix<R>::row_advance ( MatrixPosition & index ) const {
   //std::cout << "row_advance ( " << index << " ) = ";
   index = data_ [ index ] . right;
   //std::cout << index << "\n";
 }
 
 template < class R >
-void SparseMatrix<R>::column_advance ( Index & index ) const {
+void SparseMatrix<R>::column_advance ( MatrixPosition & index ) const {
   //std::cout << "column_advance ( " << index << " ) = ";
   index = data_ [ index ] . down;
   // std::cout << index << "\n";
@@ -814,19 +895,19 @@ void SparseMatrix<R>::column_advance ( Index & index ) const {
 
 // row, column
 template < class R >
-typename SparseMatrix<R>::size_type SparseMatrix<R>::row ( const Index index ) const {
+typename SparseMatrix<R>::size_type SparseMatrix<R>::row ( const MatrixPosition index ) const {
   return data_ [ index ] . position . first;
 }
 
 template < class R >
-typename SparseMatrix<R>::size_type SparseMatrix<R>::column ( const Index index ) const {
+typename SparseMatrix<R>::size_type SparseMatrix<R>::column ( const MatrixPosition index ) const {
   return data_ [ index ] . position . second;
 }
 
 // add to some position
 template < class R >
-void SparseMatrix<R>::add ( int i, int j, const R value ) {
-  Index index = find ( i, j );
+void SparseMatrix<R>::add ( int64_t i, int64_t j, const R value ) {
+  MatrixPosition index = find ( i, j );
   if ( index == end () ) {
     write ( i, j, value, true );
     return;
@@ -852,7 +933,7 @@ typename SparseMatrix<R>::size_type SparseMatrix<R>::number_of_columns ( void ) 
 
 template < class R >
 typename SparseMatrix<R>::size_type SparseMatrix<R>::size ( void ) const {
-  int result = 0;
+  int64_t result = 0;
   BOOST_FOREACH ( size_type summand, row_sizes_ ) {
     result += summand;
   } /* boost_foreach */
@@ -862,6 +943,39 @@ typename SparseMatrix<R>::size_type SparseMatrix<R>::size ( void ) const {
 /***********************************
  *    ROW AND COLUMN OPERATIONS    *
  ***********************************/
+         
+template < class R > 
+void SparseMatrix<R>::
+row_operation (const R a, size_type i ) {
+  for ( MatrixPosition p = row_begin ( i );
+        p != end ();
+        row_advance ( p ) ) {
+    R value = read ( p );
+    value = value * a;
+    write ( p, value );
+  }
+}
+
+template < class R > 
+void SparseMatrix<R>::
+column_operation (const R a, size_type j ) {
+  for ( MatrixPosition p = column_begin ( j );
+        p != end ();
+        column_advance ( p ) ) {
+    R value = read ( p );
+    value = value * a;
+    write ( p, value );
+  }
+}
+
+template < class R > 
+void SparseMatrix<R>::
+similarity_operation (const R a, size_type i) {
+  row_operation ( a, i );
+  column_operation ( inverse(a), i );
+}
+
+
 template < class R > 
 void SparseMatrix<R>::row_operation ( const R a, const R b,
                                         const R c, const R d,
@@ -875,8 +989,8 @@ void SparseMatrix<R>::row_operation ( const R a, const R b,
   /* Stage I. Copy a times the contents of row i into cache 1,
    Copy d times the contents of row j into cache 2.
    Mark the timestampts. Do not write to stack. */
-  Index i_index = row_begin ( i );
-  Index j_index = row_begin ( j );
+  MatrixPosition i_index = row_begin ( i );
+  MatrixPosition j_index = row_begin ( j );
   while ( i_index != end () ) {
     size_type col = column ( i_index );
 #ifdef USE_GMP
@@ -976,10 +1090,13 @@ void SparseMatrix<R>::row_operation ( const R a, const R b,
   
 }
 
+//   i -> ai+bj   [i j]  [a  c]
+//   j -> ci+dj          [b  d]
 template < class R > 
-void SparseMatrix<R>::column_operation (const R a, const R b,
-                                           const R c, const R d,
-                                           size_type i, size_type j ) {
+void SparseMatrix<R>::
+column_operation (const R a, const R b,
+                  const R c, const R d,
+                  size_type i, size_type j ) {
   //++ number_of_pivots;
   // Increment timestamp
   ++ timestamp;
@@ -992,7 +1109,7 @@ void SparseMatrix<R>::column_operation (const R a, const R b,
   /* Stage I. Copy a times the contents of column i into cache 1,
    Copy d times the contents of column j into cache 2.
    Mark the timestampts. Do not write to stack. */
-  Index i_index = column_begin ( i );
+  MatrixPosition i_index = column_begin ( i );
   while ( i_index != end () ) {
     size_type roww = row ( i_index );
 #ifdef USE_GMP
@@ -1006,7 +1123,7 @@ void SparseMatrix<R>::column_operation (const R a, const R b,
   }
   //std::cout << "*****\n";
   
-  Index j_index = column_begin ( j );
+  MatrixPosition j_index = column_begin ( j );
   while ( j_index != end () ) {
     size_type roww = row ( j_index );
 #ifdef USE_GMP
@@ -1098,18 +1215,33 @@ void SparseMatrix<R>::column_operation (const R a, const R b,
   }
 }
 
+template < class R >
+void SparseMatrix<R>::
+similarity_operation ( const R a, const R b,
+                       const R c, const R d,
+                       size_type i, size_type j ) {
+  R det = a * d - b * c;
+  row_operation ( a, b,
+                  c, d,
+                  i, j);
+  column_operation ( d/det, -c/det,
+                     -b/det, a/det, 
+                     i, j );
+}
 
 template < class R >
-void SparseMatrix<R>::swap_rows ( const int i, const int j ) {
-  // really dumb way
+void SparseMatrix<R>::
+swap_rows ( const int64_t i, const int64_t j ) {
+  // TODO: make more efficient
   row_operation (R ( 0 ), R ( 1 ),
                  R ( 1 ), R ( 0 ),
                  i, j );
 }
 
 template < class R >
-void SparseMatrix<R>::swap_columns ( const int i, const int j ) {
-  // really dumb way
+void SparseMatrix<R>::
+swap_columns ( const int64_t i, const int64_t j ) {
+  // TODO: make more efficient
   column_operation (R ( 0 ), R ( 1 ),
                     R ( 1 ), R ( 0 ),
                     i, j );
@@ -1141,11 +1273,11 @@ void Submatrix (SparseMatrix<R> * B,
                 const typename SparseMatrix<R>::size_type right,
                 const SparseMatrix<R> & A) {
   typedef typename SparseMatrix<R>::size_type size_type;
-  typedef typename SparseMatrix<R>::Index Index;
+  typedef typename SparseMatrix<R>::MatrixPosition MatrixPosition;
   B -> resize ( bottom - top + 1, right - left + 1 );
   for ( size_type i = top; i <= bottom; ++ i ) { 
     // warning: if top - bottom >> right - left and matrix is VERY sparse? then we should have make columns the outer loop
-    Index entry = A . row_begin ( i );
+    MatrixPosition entry = A . row_begin ( i );
     while ( entry != A . end () ) {
       size_type j = A . column ( entry );
       if (  left <= j && j <= right ) B -> write ( i - top, j - left, A . read ( entry ) );
@@ -1154,6 +1286,206 @@ void Submatrix (SparseMatrix<R> * B,
   } // for
 }
 
+
+template < class R >
+class TransposeWrapper {
+private:
+  SparseMatrix<R> * m_;
+public:
+  typedef R value_type;
+  typedef R entry_type;
+  typedef int64_t MatrixPosition;
+  typedef int64_t size_type;
+  TransposeWrapper ( SparseMatrix<R> * m ) : m_(m) {}
+
+  /// erase 
+  ///   Set the entry corresponding to MatrixPosition "index"
+  ///   to zero
+  void erase ( const MatrixPosition index ) {
+    m_ -> erase ( index );
+  }
+
+  /// find
+  ///    Find the MatrixPosition corresponding to (i,j)
+  ///    If there is no such MatrixPosition (i.e. A(i,j) == 0 )
+  ///    then return end ()
+  MatrixPosition find ( const size_type i, const size_type j ) const {
+    return m_ -> find ( j, i );
+  }
+  
+  /// read 
+  ///     Return the value at the (i,j) position
+  R read ( const size_type i, const size_type j ) const {
+    return m_ -> read ( j, i );
+  }
+
+  /// read
+  ///     Return the value at the position 
+  ///     represented by MatrixPosition "index"
+  R read ( MatrixPosition index ) const {
+    return m_ -> read ( index );
+  }
+
+  /// write ( i, j, value, insert = false)
+  ///   Set (i,j) entry to "value".
+  ///     Note: If it is known in advance that (i,j) holds zero before the call, 
+  ///           then "insert" may be set to true (it is false by default)
+  ///           which results in a speedup.
+  MatrixPosition 
+  write ( const size_type i, const size_type j, 
+          const R value, bool insert = false ) {  
+    return m_ -> write ( j, i, value, insert );
+  }
+
+  /// write ( MatrixPosition index, const R value )
+  ///   Copy "value" to the position represented by "index"
+  MatrixPosition 
+  write ( MatrixPosition index, const R value ) {
+    return m_ -> write ( index, value );
+  }
+  
+  // begin and end
+  MatrixPosition row_begin ( const size_type i ) const {
+    return m_ -> column_begin ( i );
+  }
+
+  MatrixPosition column_begin ( const size_type j ) const {
+    return m_ -> row_begin ( j );
+  }
+
+  MatrixPosition end ( void ) const {
+    return m_ -> end ();
+  } 
+
+  // traversal. row_advance advances within a row, column_advance within a column
+  void row_advance ( MatrixPosition & index ) const {
+    m_ -> column_advance ( index );
+  }
+
+  void column_advance ( MatrixPosition & index ) const {
+    m_ -> row_advance ( index );
+  }
+  
+  // row and column (to learn position)
+  size_type row ( const MatrixPosition index ) const {
+    return m_ -> column ( index );
+  }
+
+  size_type column ( const MatrixPosition index ) const {
+    return m_ -> row ( index );
+  }
+  
+  // add to some position
+  void add ( size_type i, size_type j, const R value ) {
+    m_ -> add ( j, i, value );
+  }
+  
+  /// resize
+  ///    Change the shape of the matrix
+  void resize ( size_type i, size_type j ) {
+    m_ -> resize ( j, i );
+  }
+
+  /// size
+  ///   Report number of non-zero elements in
+  ///   the sparse matrix
+  size_type size ( void ) const {
+    return m_ -> size ();
+  }
+  
+  /// row_operation
+  ///   Multiply row i by a           
+  void row_operation (const R a, size_type i ) {
+    m_ -> column_operation ( a, i );
+  }
+
+  /// column_operation
+  ///   Multiply column j by a
+  void column_operation (const R a, size_type j ) {
+    m_ -> row_operation ( a, j );
+  }
+
+  /// similarity_operation
+  ///   Multiply row i by a and divide column i by a
+  void similarity_operation (const R a, size_type i) {
+    m_ -> similarity_operation ( inverse(a), i );
+  }
+
+  /// row_operation
+  ///   Multiply  on the left by the matrix M
+  ///      where M_kk =  1  for  k \notin {i, j}
+  ///      and the {i,j}x{i,j} submatrix M_s is
+  ///         M_s = [ a b ]
+  ///               [ c d ]             
+  void row_operation (const R a, const R b,
+                      const R c, const R d,
+                      size_type i, size_type j ) {
+    m_ -> column_operation ( a,b,c,d,i,j );
+  }
+
+  /// column_operation
+  ///   Multiply  on the right by the matrix M
+  ///      where M_kk =  1  for  k \notin {i, j}
+  ///      and the {i,j}x{i,j} submatrix M_s is
+  ///         M_s = [ a c ]
+  ///               [ b d ]  
+  void column_operation (const R a, const R b,
+                         const R c, const R d,
+                         size_type i, size_type j ) {
+    m_ -> row_operation ( a,b,c,d,i,j );
+  }
+
+  /// similarity_operation
+  ///   Multiply  on the left by the matrix M
+  ///      where M_kk =  1  for  k \notin {i, j}
+  ///      and the {i,j}x{i,j} submatrix M_s is
+  ///         M_s = [ a b ]
+  ///               [ c d ] 
+  ///   and multiply on the right by the inverse of M
+  void similarity_operation (const R a, const R b,
+                             const R c, const R d,
+                             size_type i, size_type j ) {
+    R det = a*d - b*c;
+    m_ -> similarity_operation ( d/det, -c/det, -b/det, a/det, i, j);
+  }
+
+  /// swap_rows
+  ///    Swap row i and row j
+  void swap_rows ( const size_type i, const size_type j ) {
+    m_ -> swap_columns ( i, j );
+  }
+
+  /// swap_columns
+  ///    Swap column i and column j
+  void swap_columns ( const size_type i, const size_type j ) {
+    m_ -> swap_rows ( i, j );
+  }
+
+  /// number_of_rows
+  ///    Return number of rows in matrix
+  size_type number_of_rows ( void ) const {
+    return m_ -> number_of_columns ();
+  }
+
+  /// number_of_columns
+  ///    Return number of columns in matrix
+  size_type number_of_columns ( void ) const {
+    return m_ -> number_of_rows ();
+  }
+
+  /// row_size
+  ///     Return number of non-zero elements in row i
+  size_type row_size ( const size_type i ) const {
+    return m_ -> column_size ( i );
+  }
+
+  /// columns_size
+  ///     Return number of non-zero elements in column j  
+  size_type column_size ( const size_type j ) const {
+    return m_ -> row_size ( j );
+  }
+
+};
 } // namespace chomp
 
 #endif

@@ -12,25 +12,25 @@
 #include "boost/unordered_set.hpp"
 #include "chomp/Matrix.h"
 #include "chomp/Generators.h"
-#include "chomp/Toplex.h"
 #include "chomp/Closure.h"
 #include "chomp/FiberComplex.h"
+#include "chomp/RelativePair.h"
 
 
 //#include "Draw.h"
 
-#define PRINT if ( 1 ) std::cout <<
+#define PRINT if ( 0 ) std::cout <<
 
 namespace chomp {
 
 typedef std::vector < SparseMatrix < Ring > > RelativeMapHomology_t;
 
-template < class Container, class RectMap > int 
+template < class Grid, class Container, class RectMap > int
 RelativeMapHomology (RelativeMapHomology_t * output, 
-                     const Toplex & source, 
+                     const Grid & source,
                      const Container & XE, 
                      const Container & AE,
-                     const Toplex & target, 
+                     const Grid & target,
                      const Container & YE, 
                      const Container & BE,
                      const RectMap & F,
@@ -63,6 +63,17 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   PRINT "RMH: Codomain size = " << full_codomain . size () << "\n";
   PRINT "RMH: Dimension of domain = " << D << "\n";
   
+  PRINT "RMH: (X, A) size = (" << domain_pair.pair().size() << ", " 
+        << domain_pair . relative () . size () << ")\n";
+  PRINT "RMH: (Y, B) size = (" << codomain_pair.pair().size() << ", " 
+        << codomain_pair . relative () . size () << ")\n";
+
+  PRINT "RMH: (X, A) top size = (" << domain_pair.pair().size(D) << ", " 
+        << domain_pair . relative () . size (D) << ")\n";
+  PRINT "RMH: (Y, B) top size = (" << codomain_pair.pair().size(D) << ", " 
+        << codomain_pair . relative () . size (D) << ")\n";
+
+
   /// Generate "domain_GridElements_X" and "domain_GridElements_A" tables
   /// These are for determining which top cells are involved in
   /// constructing a fiber (and which are relative)
@@ -70,7 +81,6 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   domain_GridElements_X ( D + 1 );
   std::vector < std::vector < boost::unordered_set < Index > > > 
   domain_GridElements_A ( D + 1 );
-  
   
   
   PRINT "Computing domain grid elements \n";
@@ -126,15 +136,47 @@ RelativeMapHomology (RelativeMapHomology_t * output,
 //  MorseComplex debugcomplex ( domain );
 //  MorseSanity ( debugcomplex );
   //////////////////////////////////////////
-               
+  
+  int cutoff_dimension = full_domain . dimension ();
+#ifdef CONLEYINDEXCUTOFF
+  cutoff_dimension = CONLEYINDEXCUTOFF;
+#endif
   // Compute the homology generators
   clock_t homology_time_start = clock ();
   PRINT "RMH: Computing Domain Generators with MorseGenerators\n";
-  Generators_t domain_gen = MorseGenerators ( domain );
+  Generators_t domain_gen = MorseGenerators ( domain, cutoff_dimension );
   PRINT "RMH: Computing Morse Complex of Codomain (codomain_morse)\n";
   MorseComplex codomain_morse ( codomain );
   PRINT "RMH: Computing Generators of codomain_morse\n";
-  Generators_t codomain_morse_gen = SmithGenerators ( codomain_morse );
+  Generators_t codomain_morse_gen = SmithGenerators ( codomain_morse, cutoff_dimension );
+
+  // DEBUG
+
+  // Concern: Are the lifted smith generators in codomain_morse the same as the domain_gen
+  //          generators of domain_gen? For a Conley Index computation, we depend on this.
+  //          This debug code will check this explicitly.
+  /*
+  std::cout << "Domain generator basis: \n";
+  for ( int d = 0; d < domain_gen . size (); ++ d ) {
+    std::cout << "Dimension " << d << "\n";
+    for ( int gen = 0; gen < domain_gen [ d ] . size (); ++ gen ) {
+      Chain c = domain_gen [ d ] [ gen ] . first;
+      std::cout << "Domain chain " << gen << " = " << c << "\n";
+    }
+  }
+
+  std::cout << "Codomain generator basis: \n";
+  for ( int d = 0; d < codomain_morse_gen . size (); ++ d ) {
+    std::cout << "Dimension " << d << "\n";
+    for ( int gen = 0; gen < codomain_morse_gen [ d ] . size (); ++ gen ) {
+      Chain c = codomain_morse_gen [ d ] [ gen ] . first;
+      Chain lift = codomain_morse . lift ( c );
+      std::cout << "Codomain chain " << gen << " = " << lift << "\n";
+    }
+  }
+  */
+  // END DEBUG
+
   // Compute the cycles projected into the codomain through the graph 
   std::vector < std::vector < Chain > > codomain_cycles ( D + 1 );
   double homology_time = ((double)(clock()-homology_time_start)/(double)CLOCKS_PER_SEC);
@@ -145,11 +187,15 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   long max_chain_memory = 0;
   long number_of_analyzed_fibers = 0;
   long explored_graph_complex = 0;
+#ifdef RMHMEASUREGRAPH
   int highest_nontrivial_dim = -1;
+#endif
   clock_t lift_time_start = clock ();
   bool acyclic_map = true;
   for ( int d = 0; d <= D; ++ d ) {
-
+#ifdef CONLEYINDEXCUTOFF
+    if ( d == CONLEYINDEXCUTOFF ) break;
+#endif
     if ( not acyclic_map ) break;
     int number_of_domain_gen = domain_gen [ d ] . size ();
     codomain_cycles [ d ] . resize ( number_of_domain_gen );
@@ -159,8 +205,9 @@ RelativeMapHomology (RelativeMapHomology_t * output,
 
     for ( int gi = 0; gi < number_of_domain_gen; ++ gi ) {
       if ( not acyclic_map ) break;
-
+#ifdef RMHMEASUREGRAPH
       highest_nontrivial_dim = d;
+#endif
       PRINT "RMH: dimension = " << d << ", generator = " << gi << "\n";
 
       long chain_memory = 0;
@@ -201,7 +248,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
         //std::cout << "Dealing with fiber (" << t . index () << ", " << d << ") (*)\n";
         //std::cout << "   Term is " << t << "\n";
         // Determine fiber
-        boost::unordered_set < GridElement > X_nbs, A_nbs;
+        boost::unordered_set < Index > X_nbs, A_nbs;
         
         //std::cout << "domain_GridElements_X [ " << d << " ] . size () = " <<
         //domain_GridElements_X [ d ] . size () << "\n";
@@ -222,15 +269,19 @@ RelativeMapHomology (RelativeMapHomology_t * output,
         FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
         //std::cout << "CHECKPOINT Y\n";
 
-        if ( not fiber . acyclic () ) {
-          acyclic_map = false;
-          break;
-        }
+
         if ( fiber . size () == 0 ) {
           std::cout << "UNEXPECTED: CANT LIFT CHAIN DUE TO EMPTY FIBER.\n";
           acyclic_map = false;
           break;
         }
+
+#ifndef CONLEY_INDEX_NO_ACYCLIC_CHECKS
+        if ( not fiber . acyclic () ) {
+          acyclic_map = false;
+          break;
+        }
+#endif
         ++ number_of_analyzed_fibers; // run statistics
         explored_graph_complex += fiber . size (); // run statistics
 
@@ -259,14 +310,19 @@ RelativeMapHomology (RelativeMapHomology_t * output,
           //std::cout << "   Chain is " << fiberchain . second << "\n";
           chain_memory += fiberchain . second () . size ();
           // Determine fiber
-          boost::unordered_set < GridElement > X_nbs, A_nbs;
+          boost::unordered_set < Index > X_nbs, A_nbs;
           X_nbs = domain_GridElements_X [ fd ] [ fiberchain . first ];
           A_nbs = domain_GridElements_A [ fd ] [ fiberchain . first ];    
           FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
-          if ( not fiber . acyclic () ) {
+          
+          // TODO: option to turn this check off.
+#ifndef CONLEY_INDEX_NO_ACYCLIC_CHECKS
+          if ( not fiber . acyclic_or_trivial () ) {
             acyclic_map = false;
             break;
           }
+#endif
+          
           ++ number_of_analyzed_fibers; // run statistics
           explored_graph_complex += fiber . size (); // run statistics
           // Determine chain in fiber
@@ -325,9 +381,12 @@ RelativeMapHomology (RelativeMapHomology_t * output,
           if ( fd == 0 ) answer -= included_preboundary;
           // Add preboundary to adjacent fibers
           Chain bd = full_domain . boundary (fiberchain . first, fd );
+          Ring grade;
+          if ( fd % 2 ) grade = Ring ( -1 ); else grade = Ring ( 1 );
           BOOST_FOREACH ( const Term & s, bd () ) {
             graph_boundary [fd-1] [ s . index () ] . dimension () = d - fd;
-            graph_boundary [fd-1] [ s . index () ] -= included_preboundary * s . coef ();
+            graph_boundary [fd-1] [ s . index () ] -= included_preboundary * 
+                                                      (grade * s . coef ());
           }
         }
       }
@@ -336,6 +395,12 @@ RelativeMapHomology (RelativeMapHomology_t * output,
       // First project into the relative codomain complex
       Chain relative_answer = simplify ( codomain . project ( answer ) );
       
+      // DEBUG
+      // Concern: We want to see what the projection onto the codomain is and make sure
+      //          it is being properly handled.
+      //std::cout << "Projection to codomain (" << d << ", " << gi << "): " << relative_answer << "\n";
+      // END DEBUG
+
       // Project the Relative Graph Cycle to the Codomain
       codomain_cycles [ d ] [ gi ] = codomain_morse . lower ( relative_answer );
       
@@ -358,6 +423,9 @@ RelativeMapHomology (RelativeMapHomology_t * output,
  clock_t algebra_time_start = clock ();
   // Loop through each Codomain Cycle
   for ( int d = 0; d <= codomain_morse . dimension (); ++ d ) {
+#ifdef CONLEYINDEXCUTOFF
+    if ( d == CONLEYINDEXCUTOFF ) break;
+#endif
     Matrix G = chainsToMatrix ( codomain_morse_gen [ d ], codomain_morse, d );
     Matrix Z = chainsToMatrix ( codomain_cycles [ d ], codomain_morse, d );
     Matrix MapHom = SmithSolve (G, Z);
@@ -378,13 +446,16 @@ RelativeMapHomology (RelativeMapHomology_t * output,
   PRINT "RMH: Time Elapsed (algebra time) = " << algebra_time << "\n";
   PRINT "RMH: Time Elapsed (total) = " << total_time << "\n";
 
-  #ifdef RMHMEASUREGRAPH
+#ifdef RMHMEASUREGRAPH
   long graph_size = 0;
   long edge_graph_size = 0;
   for ( int d = 0; d <= D; ++ d ) {
+#ifdef CONLEYINDEXCUTOFF
+    if ( d == CONLEYINDEXCUTOFF ) break;
+#endif
     for ( Index i = 0; i < full_domain . size ( d ); ++ i ) {
       if ( rand () % 10 != 0 ) continue;
-      boost::unordered_set < GridElement > X_nbs, A_nbs;
+      boost::unordered_set < Index > X_nbs, A_nbs;
       X_nbs = domain_GridElements_X [ d ] [ i ];
       A_nbs = domain_GridElements_A [ d ] [ i ];   
       FiberComplex fiber ( X_nbs, A_nbs, full_domain, full_codomain, F );
@@ -414,7 +485,7 @@ RelativeMapHomology (RelativeMapHomology_t * output,
 
   std::cout << "\n";
   }
-  #endif
+#endif
   PRINT "RMH: Returning.\n";
   return 0;
 }

@@ -75,7 +75,7 @@ inline Matrix SmithSolve ( const Matrix & A, const Matrix & B ) {
   for ( Matrix::size_type column = 0; 
        column < Y . number_of_columns (); 
        ++ column ) {
-    for ( Matrix::Index entry = Y . column_begin ( column ); 
+    for ( Matrix::MatrixPosition entry = Y . column_begin ( column ); 
          entry != Y . end (); 
          Y . column_advance ( entry ) ) {
       Matrix::size_type i = Y . row ( entry );

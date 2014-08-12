@@ -31,7 +31,7 @@ inline Chain SmithPreboundary ( const Chain & input,
 
   Chain return_value;
   return_value . dimension () = dim + 1;
-  for ( Matrix::Index entry = X . column_begin ( 0 );
+  for ( Matrix::MatrixPosition entry = X . column_begin ( 0 );
         entry != X . end (); X . column_advance ( entry ) ) {
     return_value += Term (X . row ( entry ), 
                           X . read ( entry ) );

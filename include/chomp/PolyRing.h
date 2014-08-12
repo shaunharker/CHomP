@@ -7,8 +7,15 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 #include "chomp/Field.h"
+
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/nvp.hpp>
+
+#include <boost/thread.hpp>
 
 namespace chomp {
   
@@ -26,6 +33,12 @@ public:
 	Field & operator [] ( const int index ) { return coefficients_ [ index ]; }
 	const Field & operator [] ( const int index ) const { return coefficients_ [ index ]; }
 	PolyRing & operator += ( const PolyRing & rhs);
+
+	friend class boost::serialization::access;
+  template<class Archive>
+void serialize(Archive& ar, const unsigned int version) {
+  ar & boost::serialization::make_nvp("COEF", coefficients_);
+}
 };
 
 template < class Field >
@@ -33,33 +46,20 @@ std::ostream & operator << ( std::ostream & outstream, const PolyRing<Field> & p
 	if ( print_me . degree () == -1 ) {
 		outstream << "0";
 		return outstream;
-	}
-	if ( print_me . degree () == 0 ) {
-		outstream << print_me [ 0 ];
-		return outstream;
-	}
-	
-	if ( print_me [ print_me . degree () ] == 1 ) {
-		outstream << "x^" << print_me . degree ();
-	} else {
-		outstream << print_me [ print_me . degree () ] << "x^" << print_me . degree ();
-	}
-	
-	for ( int i = (int) print_me . degree () - 1; i >= 0; -- i ) {
-	  if ( print_me [ i ] == 0 ) continue;
-	  if ( print_me [ i ] == 1 ) {
-		  if ( i > 0 ) {
-			outstream << " + " << "x^" << i;
-		  } else {
-			outstream << " + 1";
-		  }
-		} else {
-			if ( i > 0 ) {
-				outstream << " + " << print_me [ i ] << "x^" << i;
-			} else {
-				outstream << " + " << print_me [ i ];
-			}
-		}
+	}	
+	for ( int i = (int) print_me . degree () ; i >= 0; -- i ) {
+	  if ( print_me [ i ] == Field(0) ) continue;
+	  if ( i != (int)print_me.degree() && print_me[i].balanced_value()>0 ) outstream << "+";
+	  if ( print_me[i].balanced_value() == -1 ) outstream << "-";
+	  if ( print_me[i].balanced_value() != 1 && print_me[i].balanced_value() != -1 ) outstream << print_me[i];
+
+	  if ( i > 1 ) {
+	  	outstream << "x^" << i;
+	  } else if ( i == 1 ) {
+	  	outstream << "x";
+	  } else if ( i == 0 ) {
+	  	if ( print_me[i].balanced_value() == 1 || print_me[i].balanced_value() == -1 ) outstream << "1";
+	  }
 	}
 	return outstream;
 }
@@ -108,7 +108,7 @@ PolyRing<Field> operator - (const PolyRing<Field> & x) {
 
 template < class Field >
 inline PolyRing<Field> operator + (const PolyRing<Field> & lhs, const PolyRing<Field> & rhs) {
-	int degree = std::max ( lhs . degree, rhs . degree );
+	int degree = std::max ( lhs . degree (), rhs . degree ());
 	PolyRing<Field> result;
   result . resize ( degree + 1 );
 	for ( int i = 0; i <= degree; ++ i ) {
@@ -142,6 +142,7 @@ PolyRing<Field> operator - (const PolyRing<Field> & lhs, const PolyRing<Field> &
 
 template < class Field >
 PolyRing<Field> operator * (const PolyRing<Field> & lhs, const PolyRing<Field> & rhs) {
+	boost::this_thread::interruption_point ();
 	int degree = lhs . degree () + rhs . degree ();
 	PolyRing<Field> result;
   result . resize ( degree + 1 );

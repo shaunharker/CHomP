@@ -5,10 +5,17 @@
 #ifndef CHOMP_SMITHNORMALFORM_H
 #define CHOMP_SMITHNORMALFORM_H
 
+#include <fstream>
 #include <cstdlib>
 #include <stdint.h>
 
 #include "chomp/SparseMatrix.h"
+#include "chomp/Algebra.h"
+
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
+#include <boost/thread.hpp>
 
 namespace chomp {
 
@@ -24,7 +31,7 @@ SmithNormalForm (SparseMatrix<R> * U,
                  SparseMatrix<R> * V,
                  SparseMatrix<R> * Vinv,
                  SparseMatrix<R> * D,
-                 const SparseMatrix<R> & A);
+                 const SparseMatrix<R> & A );
 
 
 
@@ -35,137 +42,6 @@ SmithNormalForm (SparseMatrix<R> * U,
 /* SMITH FORM CALCULATION */
 
 
-template < class R >
-R div ( const R y, const R x ) {
-  /* For some reason, chip-makers decided to make (-2^63) / -1 generate an exception
-   rather than returning 2^63 (which overflows into -2^63 ).
-   This isn't comprehensible, since all other operations support overflow in the expected
-   manner of treating the register as Z_{2^64} . But it means we have to check for it. 
-   It is especially disconcerting, since multiplication does not have the same problem.
-   However there is a simple workaround. */
-  if ( x != R ( -1 ) ) {
-    ////NSLog ( @" div 1\n" );
-    return y / x;
-  } else {
-    ////NSLog ( @" div 2\n" );
-    return y * x;
-  }
-}
-
-template < class R >
-bool divisable ( const R y, const R x ) {
-  if ( x == R ( 0 ) ) return ( y == R ( 0 ) );
-  ////NSLog ( @" divisable 1\n" );
-  if ( (div(y, x) * x) == y ) return true;
-  ////NSLog ( @" divisable 2\n" );
-  return false;
-}
-
-/// Bezout
-/// Given a and b, calculate a, b, and gcd such that
-/// s * a + t * b = gcd
-/// and gcd is the greatest common divisor of a and b
-/// Also, if a = +/- gcd, then choose t = 0.
-template < class R >
-void Bezout (R * s_out,
-             R * t_out,
-             R * gcd_out,
-             const R & a, 
-             const R & b) {
-  //std::cout << "Bezout\n";
-  static R one ( 1 );
-  static R zero ( 0 );
-  static R neg_one ( -1 );
-  // Relies upon Euclidean Division being available, and also comparison.
-  // The user doesn't need to sort the input.
-  bool reversed = false;
-  if ( a < b ) reversed = true;
-  // For the proof to follow, we assume without loss a >= b
-  R x = std::min ( a, b ); // Think x = b for proof below
-  R y = std::max ( a, b ); // Think y = a for proof below
-                           // For extended euclidean algorithm
-  R s0 = one; R s1 = zero;
-  R t0 = zero; R t1 = one;
-  while ( x != zero ) {
-    //std::cout << "top of bezout\n";
-    //std::cout << " y = " << y << " and x = " << x << "\n";
-    //std::cout << "y - 1 = " << y - 1 << "\n";
-    R q = div ( y, x );
-    R r = y - x * q;
-    R s = s0 - q * s1;
-    R t = t0 - q * t1;
-    //std::cout << "Claim: " << r << " = " << s << " * " << a << " + " << t << " * " << b << "\n";
-    /* r = s * a + t * b
-     Proof:
-     By induction. First, k = 0 case.
-     Since s_0 = 1 and t_0 = -q_0, we get
-     r_0 = a - q_0 * b, which is indeed the case.
-     Now the k = 1 case.
-     s_1 = 0 - q_1 * (1)
-     t_1 = 1 - q_1 * (-q_0)
-     s_1 * a + t_1 * b = 
-     -q_1 * a + b + q_0 * q_1 * b =
-     b - q_1 ( a - q_0 * b ) =
-     b - q_1 * r_0 = r_1.
-     Now the inductive step for k > 1. 
-     s_k * a + t_k * b =
-     (s_{k-2} - q_k * s_{k-1}) * a + (t_{k-2} - q_k * t_{k-1}) * b =
-     (s_{k-2} * a + t_{k-2} * b ) - q_k * (s_{k-1} * a + t_{k-1} * b ) =
-     r_{k-2} - q_k * r_{k-1} = r_k.
-     */
-    s0 = s1; s1 = s;
-    t0 = t1; t1 = t;
-    y = x;
-    x = r;
-  } /* while */
-  // Set output
-  // The Bezout coefficients s and t are the second to last ones
-  // to be calculated (the last ones give 0 = s*a + t*b)
-  if ( not reversed ) {
-    * s_out = s0;
-    * t_out = t0;
-  } else {
-    * t_out = s0;
-    * s_out = t0;
-  }
-  * gcd_out = y;
-  // TODO: generalize this to all unit multiples, somehow, for general Rs
-  // TODO: should this really be here? perhaps the caller should worry about this
-  if ( * gcd_out == a ) {
-    * s_out = one; * t_out = zero;
-  }
-  if ( * gcd_out == -a ) {
-    * s_out = neg_one; * t_out = zero;
-  }
-}
-
-
-
-#ifdef USE_GMP
-#include <gmpxx.h>
-template < >
-void Bezout < mpz_class > ( mpz_class * s_out,
-                           mpz_class * t_out,
-                           mpz_class * gcd_out,
-                           const mpz_class & a, 
-                           const mpz_class & b) {
-  mpz_gcdext ( gcd_out -> get_mpz_t (), 
-              s_out -> get_mpz_t (), 
-              t_out -> get_mpz_t (), 
-              a . get_mpz_t (), 
-              b . get_mpz_t () );
-  // TODO: should this really be here? perhaps the caller should worry about this
-  static mpz_class one ( 1 );
-  static mpz_class zero ( 0 );
-  static mpz_class neg_one ( -1 );
-  if ( * gcd_out == a ) {
-    * s_out = one; * t_out = zero;
-  }
-  if ( * gcd_out == -a ) {
-    * s_out = neg_one; * t_out = zero;
-  }
-}
-#endif
 
 /**********************
  *      PIVOTING      *
@@ -181,11 +57,14 @@ void RowPivot (SparseMatrix<R> * U,
                const int j) {
   
   typedef SparseMatrix<R> Matrix;
-  typedef typename Matrix::Index Index;
+  typedef typename Matrix::MatrixPosition MatrixPosition;
   // Main Loop
-  Index pivot_index = D -> find ( i, j );
-  Index index = D -> column_begin ( j );
+  MatrixPosition pivot_index = D -> find ( i, j );
+  MatrixPosition index = D -> column_begin ( j );
   while ( index != D -> end () ) { 
+
+    boost::this_thread::interruption_point ();
+
     // Perform the pivot operation. Use (i, j) to eliminate element.
     R s, t, g, x, y;
     R a = D -> read ( pivot_index );
@@ -204,31 +83,35 @@ void RowPivot (SparseMatrix<R> * U,
     y = div ( b, g );
     
     
-    
-    
-    
-    // DEBUG
-    /*
+    #ifdef SNF_DEBUG
+    std::cout << "Bezout: (s, t, x, y, a, b ) = (" << s 
+      << ", " << t << ", " << x << ", " << y << ", " << a << ", " << b << ")\n";
+
      std::cout << " Value at pivot = " << a << "\n";
      std::cout << " Elimination value = " << b << "\n";
      std::cout << " Elimination index = " << k << "\n";
      std::cout << " Bezout Formula: " << s << " * " << a << " + " << t << " * " << b << " = " << g << "\n";
-     */
+     std::cout << s*a + t*b << "\n";
+    #endif
     
     /* Explanation of the row operations:
      Apply the 2x2 matrix from the left:
-     M=  [  s  t  ]     Minv = [ x  -t ]
-     [ -y  x  ]            [ y   s ]
+     M :=  [  s  t  ]     
+           [ -y  x  ]            
      This means the following: Let I and K represent the ith and kth rows, respectively.
-     We do the following:  I' <- s I + t K
-     K' <- -y I + x K.
+     We do the following:  
+         I' <-  s I + t K
+         K' <- -y I + x K.
      See that this makes a <- s * a + t * b = g
      and b <- (- b * a + a * b) / g = 0, as desired.
      Also, we have to update U and U_inv. 
      U is to be updated by multiplying on the right by M_inv.
+     Minv := [ x  -t ]
+             [ y   s ]
      This involves column operations. Let I and K be the ith and kth columns of U, respectively.
-     We set I' <- x * I + y * K
-     K' <- -t * I + s * K
+     We set 
+         I' <-  x * I + y * K
+         K' <- -t * I + s * K
      Uinv is to be updated by multiplying on the left by M. This is the same as what we did to D.
      */
     
@@ -260,15 +143,18 @@ void ColumnPivot (SparseMatrix<R> * V,
                   const int j) {
   
   typedef SparseMatrix<R> Matrix;
-  typedef typename Matrix::Index Index;
+  typedef typename Matrix::MatrixPosition MatrixPosition;
   // Main Loop
-  Index pivot_index = D -> find ( i, j );
-  Index index = D -> row_begin ( i );
+  MatrixPosition pivot_index = D -> find ( i, j );
+  MatrixPosition index = D -> row_begin ( i );
   
   //std::cout << "DEBUG: ColumnPivot. pivot_index = " << pivot_index << " and index = " << index << "\n";
   //std::cout << "DEBUG: D -> end () = " << D -> end () << "\n";
   
   while ( index != D -> end () ) { 
+
+    boost::this_thread::interruption_point ();
+
     //std::cout << "Inside while loop...\n";
     // Perform the pivot operation. Use (i, j) to eliminate element.
     R s, t, g, x, y;
@@ -279,14 +165,24 @@ void ColumnPivot (SparseMatrix<R> * V,
     // Prevent self-elimination.
     D -> row_advance ( index );
     if ( j == k ) continue;
-    //std::cout << " Eliminating (" << i << ", " << k << "; " << b << ") with (" << i << ", " << j << "; " << a << ")\n";
+    #ifdef SNF_DEBUG
+    std::cout << " Eliminating (" << i << ", " << k << "; " << b << ") with (" << i << ", " << j << "; " << a << ")\n";
+    #endif
     // Determine necessary row operations with Euclidean Algorithm
     Bezout ( &s, &t, &g, a, b );
     x = div ( a, g );
     y = div ( b, g );
     
-    //std::cout << " Bezout Formula: " << s << " * " << a << " + " << t << " * " << b << " = " << g << "\n";
-    
+    #ifdef SNF_DEBUG
+    std::cout << "Bezout: (s, t, x, y, a, b ) = (" << s 
+      << ", " << t << ", " << x << ", " << y << ", " << a << ", " << b << ")\n";
+
+     std::cout << " Value at pivot = " << a << "\n";
+     std::cout << " Elimination value = " << b << "\n";
+     std::cout << " Elimination index = " << k << "\n";
+     std::cout << " Bezout Formula: " << s << " * " << a << " + " << t << " * " << b << " = " << g << "\n";
+     std::cout << s*a + t*b << "\n";
+    #endif    
     /* Explanation of the row operations:
      Apply the 2x2 matrix from the right:
      M=  [  s  -y  ]     Minv = [  x  y ]
@@ -303,20 +199,33 @@ void ColumnPivot (SparseMatrix<R> * V,
      K' <-  -t * J + s * K
      Uinv is to be updated by multiplying on the left by M. This is the same as what we did to D.
      */
-    
-    D -> column_operation (s, t,
-                           -y, x,
-                           j, k);
-    
-    Vinv -> column_operation (s, t,
-                              -y, x,
-                              j, k);
-    
-    V -> row_operation (x, y,
-                        -t, s,
-                        j, k);
-    
-    
+
+    #ifdef SNF_DEBUG
+     std::cout << ".\n";
+    #endif
+
+     D -> column_operation (s, t,
+       -y, x,
+       j, k);
+    #ifdef SNF_DEBUG
+
+     std::cout << ".\n";
+    #endif
+
+     Vinv -> column_operation (s, t,
+      -y, x,
+      j, k);
+    #ifdef SNF_DEBUG
+
+     std::cout << "col_op.\n";
+    #endif
+
+     V -> row_operation (x, y,
+      -t, s,
+      j, k);
+    #ifdef SNF_DEBUG
+     std::cout << "column row_op.\n";
+    #endif
     //std::cout << "Result of elimination step:\n";
     //print_matrix ( *D );
   } /* while */
@@ -335,45 +244,75 @@ void SmithPivot (SparseMatrix<R> * U,
                  const int i,
                  const int j) {
   typedef SparseMatrix<R> Matrix;
-  typedef typename Matrix::Index Index;
+  typedef typename Matrix::MatrixPosition MatrixPosition;
   // Obtain the (i, j)th element of D
-  Index pivot_index = D -> find ( i, j );
-  R pivot_value = D -> read ( pivot_index ); 
-  
+  MatrixPosition pivot_index = D -> find ( i, j );
+
+  //DEBUG
+  if ( pivot_index == D -> end () ) {
+    std::cout << "Unable to find pivot " << i << ", " << j << "\n";
+    std::cout << "Hence pivot_value = " << D -> read ( pivot_index );
+    std::cout << "THROWING BAD SNF CALCULATION\n";
+    throw 42; // bad snf calculation
+  }
+  //END DEBUG
+
   //DEBUG
   if ( D -> read (i, j) == R ( 0 ) ) {
     std::cout << "Pivot cannot be zero!\n";
     exit ( 1 );
   }
+  //END DEBUG
   
-  
-  R old_pivot_value ( 0 );
-  //std::cout << " **** SMITH PIVOT (" << i << ", " <<
-  // j << ") value = " << pivot_value << " **** \n";
-  //print_matrix ( * D );
+  #ifdef SNF_DEBUG
+  R pivot_value = D -> read ( pivot_index ); 
+  std::cout << " **** SMITH PIVOT (" << i << ", " <<
+   j << ") value = " << pivot_value << " **** \n";
+  print_matrix ( * D );
+  #endif
   // We assume pivot_value != 0, so this while loop will run at least once:
-  while ( pivot_value != old_pivot_value ) {
-    old_pivot_value = pivot_value;
+  while ( D -> row_size ( i ) > 1 ||
+          D -> column_size ( j ) > 1 ) { 
     
     //sane_matrix ( *D );
-    //std::cout << "***** Calling ColumnPivot on (" << i << ", " << j << ")\n";
+    
+    #ifdef SNF_DEBUG
+    std::cout << "***** Calling ColumnPivot on (" << i << ", " << j << ")\n";
+    #endif
+    
     ColumnPivot ( V, Vinv, D, i, j);
-    //print_matrix ( *D );
-    
+
+    #ifdef SNF_DEBUG
+    print_matrix ( *D );
+    #endif
+
     //sane_matrix ( *D );
-    //std::cout << "***** Calling RowPivot on (" << i << ", " << j << ")\n";
+    #ifdef SNF_DEBUG
+    std::cout << "***** Calling RowPivot on (" << i << ", " << j << ")\n";
+    #endif
+
     RowPivot ( U, Uinv, D, i, j );
-    //print_matrix ( *D );
-    
-    pivot_value = D -> read ( pivot_index ); 
-    // if pivot_value has not changed, then no new work has been produced.
+
+    #ifdef SNF_DEBUG
+    print_matrix ( *D );
+    #endif
+
   }
-  //std::cout << " **** SMITH PIVOT COMPLETE **** \n";
+  #ifdef SNF_DEBUG
+  std::cout << " **** SMITH PIVOT COMPLETE **** \n";
+  #endif
 }
 
 #ifdef SNF_DEBUG
 uint64_t number_of_pivots = 0;
 #endif
+
+#define CHECK_SNF_PRODUCT { SparseMatrix<R> UDV = (*U) * (*D) * (*V); \
+for ( int i = 0; i < UDV . number_of_rows (); ++ i ) { \
+    for ( int j = 0; j < UDV . number_of_columns (); ++ j ) { \
+      if ( UDV . read (i, j) != A . read (i, j) ) abort (); \
+    } \
+  } }
 
 /// SmithNormalForm
 /// Input: A
@@ -388,9 +327,9 @@ void SmithNormalForm (SparseMatrix<R> * U,
                       SparseMatrix<R> * V,
                       SparseMatrix<R> * Vinv,
                       SparseMatrix<R> * D,
-                      const SparseMatrix<R> & A) {
+                      const SparseMatrix<R> & A ) {
   typedef SparseMatrix<R> Matrix;
-  typedef typename Matrix::Index Index;
+  typedef typename Matrix::MatrixPosition MatrixPosition;
   typedef typename Matrix::size_type size_type;
   // We copy A into D.
   *D = A;
@@ -414,6 +353,10 @@ void SmithNormalForm (SparseMatrix<R> * U,
     V -> write ( i, i, R ( 1 ), true ); 
   *Vinv = *V;
   
+  #ifdef SNF_DEBUG
+  CHECK_SNF_PRODUCT
+  #endif
+
   // The algorithm proceeds by selecting a sequence of pivots (t, j_t)
   int t = 0;
 #ifdef SNF_DEBUG
@@ -433,8 +376,11 @@ void SmithNormalForm (SparseMatrix<R> * U,
     // We want to find a good pivot row from the jth column
     // The simplest criterion is to pick the one with the smallest size
     size_type pivot_row = 0; // we find this
+    if ( D -> read ( t, t ) != R ( 0 ) ) {
+      pivot_row = t;
+    } else {
     size_type best_size = D -> number_of_columns (); // maximum size row could be
-    Index index = D -> column_begin ( j );
+    MatrixPosition index = D -> column_begin ( j );
     while ( index != D -> end () ) {
       size_type which_row = D -> row ( index );
       size_type row_size = D -> row_size ( which_row );
@@ -446,36 +392,63 @@ void SmithNormalForm (SparseMatrix<R> * U,
       } /* if */
       D -> column_advance ( index );
     } /* while */
+    }
     // At this point we have found a pivot. We'll need to swap rows.
     
-    //std::cout << " Just before swapping:\n";
-    //print_matrix ( *D );
+    #ifdef SNF_DEBUG
+    std::cout << "Pivot Row selected: t = " << t << ", pivot_row = " << pivot_row << "\n";
+    std::cout << " Just before swapping:\n";
+    print_matrix ( *D );
     //sane_matrix ( *D );
-    
-    //std::cout << "Swapping rows. (" << t << ", " << pivot_row << ")...\n";
+    std::cout << "Swapping rows. (" << t << ", " << pivot_row << ")\n";
+    #endif
+
     D -> swap_rows ( t, pivot_row );
     U -> swap_columns ( t, pivot_row );
     Uinv -> swap_rows ( t, pivot_row );
     
-    
-    //print_matrix ( *D );
+    #ifdef SNF_DEBUG
+    CHECK_SNF_PRODUCT
+    #endif
+
+    #ifdef SNF_DEBUG
+    print_matrix ( *D );
     //sane_matrix ( *D );
+    #endif
     // Now the pivot_row is really t
     
     // Now we use pivot off from the pivot choice,
     // zeroing out all elements in its row and column except itself.
     // At the end of this procedure, all remaining entries have
     // row number greater than t and column number greater than j
-    //std::cout << "Performing the pivot step at (" << t << ", " << j << "):\n";
+    #ifdef SNF_DEBUG
+    std::cout << "Performing the pivot step at (" << t << ", " << j << "):\n";
+    #endif
     SmithPivot ( U, Uinv, V, Vinv, D, t, j );
-    //print_matrix ( *D );
-    //std::cout << "Swapping columns.\n";
+
+    #ifdef SNF_DEBUG
+    CHECK_SNF_PRODUCT
+    #endif
+
+    #ifdef SNF_DEBUG
+    print_matrix ( *D );
+    std::cout << "Swapping columns. (" << t << ", " << j << ")\n";
+    #endif
     // Now we swap columns, making this the t-th column rather than the jth column
     // (note that j >= t )
     D -> swap_columns ( t, j );
     V -> swap_rows ( t, j );
     Vinv -> swap_columns ( t, j );
     
+    #ifdef SNF_DEBUG
+    CHECK_SNF_PRODUCT
+    #endif
+    
+    #ifdef SNF_DEBUG
+    print_matrix ( *D );
+    //sane_matrix ( *D );
+    #endif
+
     // Finally, increment t.
     ++ t;
   } /* for */
@@ -496,82 +469,75 @@ void SmithNormalForm (SparseMatrix<R> * U,
   bool pass_again = true;
   while ( pass_again ) {
     //NSLog(@"SNF - PASS\n" );
+    #ifdef SNF_DEBUG
+   std::cout << " TOP OF OUTER DIAGONAL DIVISABILITY STAGE LOOP \n ";
+#endif
     pass_again = false;
     for ( int i = 0; i < r - 1; ++ i ) {
       ////NSLog(@"SNF - PASS -- i = %d / r = %d\n", i, r );
 #ifdef SNF_DEBUG
+      std::cout << " TOP OF INNER DIAGONAL DIVISABILITY STAGE LOOP \n ";
+      print_matrix ( *D );
       std::cout << " i = " << i << " and r = " << r << "\n";
-      std::cout << " size of almost diagonal matrix D: " << D -> size () << "\n";
-      std::cout << " consider " << D -> read ( i, i ) << " and " << D -> read ( i + 1, i + 1 ) << "\n";
+      std::cout << " size of D: " << D -> size () << "\n";
+      std::cout << " We look at (" << i << ", " << i << ") and (" << i+1 << ", " << i+1 << ")\n";
+      std::cout << " We consider " << D -> read ( i, i ) << " and " << D -> read ( i + 1, i + 1 ) << "\n";
       if ( divisable ( D -> read ( i + 1, i + 1 ), D -> read ( i, i ) ) ) 
-        std::cout << "we consider them divisible.\n";
-      else std::cout << "we don't consider them divisible\n";
+        std::cout << D -> read ( i + 1, i + 1 ) << " is  divisable by " << D -> read ( i, i )  << " \n";
+      else std::cout << D -> read ( i + 1, i + 1 ) << " is NOT divisable by " << D -> read ( i, i )  << " \n";
 #endif
-      //print_matrix ( *D );
       
-      ///// DEBUG ////
-      //std::cout << "Check:" << D -> read ( i + 1, i + 1 ) << " is divisible by " <<
-      //D -> read ( i, i ) << "\n";
-      //if ( divisable ( D -> read ( i + 1, i + 1 ), D -> read ( i, i ) ) ) {
-      //  std::cout << "YES.\n";
-      //};
-      /////////////////
-      
-      ////NSLog(@"SNF - PASS -- A\n" );
-
-      ////// DEBUG //////
-      //R temp1 = D -> read ( i + 1, i + 1 );
-      //R temp2 = D -> read ( i, i );
-      //std::cout << "temp1 = " << temp1 << "\n";
-      //std::cout << "temp2 = " << temp2 << "\n";
-      ////NSLog( @"SNF - PASS - A2\n");
-            
       if ( divisable ( D -> read ( i + 1, i + 1 ), D -> read ( i, i ) ) ) continue;
       
-      ////NSLog(@"SNF - PASS -- B\n" );
-
       pass_again = true;
-      //////// DEBUG /////////
-      //std::cout << "NO.\n";
-      ////////////////////////
       
       D -> write ( i + 1, i,  D -> read ( i + 1, i + 1 ) );
-      
-      //print_matrix ( *D );
-      
+
       // This is a column operation; we need to update V and Vinv
       /* The matrix in question is
        M =  [ 1 0 ]    Minv = [  1 0 ]
        [ 1 1 ]           [ -1 1 ]
        We should multiply V on the left by Minv and Vinv on the right by M.
        */
-      ////NSLog(@"SNF - PASS -- C\n" );
 
       Vinv -> column_operation (R ( 1 ), R ( 1 ),
                                 R ( 0 ), R ( 1 ),
                                 i, i + 1 );
-      
-      ////NSLog(@"SNF - PASS -- D\n" );
-
       V -> row_operation (R ( 1 ), R ( 0 ),
                           R ( -1 ), R ( 1 ),
                           i, i + 1 );
       
-      ////NSLog(@"SNF - PASS -- E\n" );
+      #ifdef SNF_DEBUG
+      std::cout << "Applied an operation:\n";
+      print_matrix ( *D );
+      #endif
 
+      #ifdef SNF_DEBUG
+      CHECK_SNF_PRODUCT
+      #endif
+    
       SmithPivot ( U, Uinv, V, Vinv, D, i, i );
-      
-      ////NSLog(@"SNF - PASS -- F\n" );
-
+    
+      #ifdef SNF_DEBUG
+      CHECK_SNF_PRODUCT
+      #endif
       ////// DEBUG ///////
-      // std::cout << "Check again:" << D -> read ( i + 1, i + 1 ) << " is divisible by " <<
-      // D -> read ( i, i ) << "\n";    
-      // if ( divisable ( D -> read ( i + 1, i + 1 ), D -> read ( i, i ) ) ) {
-      //   std::cout << "YES.\n";
-      // };
+      #ifdef SNF_DEBUG
+            print_matrix ( *D );
+
+       std::cout << "Check again:" << D -> read ( i + 1, i + 1 ) << " is divisible by " <<
+       D -> read ( i, i ) << "\n";    
+       if ( divisable ( D -> read ( i + 1, i + 1 ), D -> read ( i, i ) ) ) {
+         std::cout << "YES.\n";
+       } else {
+        std::cout << "NO!!!!!\n";
+        abort ();
+       }
+      print_matrix ( *D );
+
+      #endif
       ////////////////////
       
-      //print_matrix ( *D );
       
     }
   }
@@ -584,13 +550,14 @@ void SmithNormalForm (SparseMatrix<R> * U,
    }
    */
   // DEBUG.
-  SparseMatrix<R> UDV = (*U) * (*D) * (*V);
-  
+
   //NSLog(@"SNF4.5\n" );
 
   //NSLog ( @"Size of UDV = (%d, %d)", UDV . number_of_rows (), UDV . number_of_columns () );
   //NSLog ( @"Size of A = (%d, %d)", A . number_of_rows (), A . number_of_columns () );
   
+  //#ifdef SNF_DEBUG
+  { SparseMatrix<R> UDV = (*U) * (*D) * (*V);
   for ( int i = 0; i < UDV . number_of_rows (); ++ i ) {
     for ( int j = 0; j < UDV . number_of_columns (); ++ j ) {
       ////NSLog(@"about to read\n" );
@@ -598,14 +565,22 @@ void SmithNormalForm (SparseMatrix<R> * U,
         //NSLog(@"problem at (%d, %d)\n", i, j );
         std::cout << "Smith Normal Form failure.\n";
         print_matrix ( A );
-        //print_matrix ( UDV );
+        print_matrix ( UDV );
+        {
+           std::cout << "SNF FAILURE SAVE\n";
+           std::ofstream ofs("SNFFailure.txt");
+          assert(ofs.good());
+          boost::archive::text_oarchive oa(ofs);
+          oa << A;
+        }
+        abort ();
+        throw 42;
         return;
-        //exit ( 1 );
       }
-      ////NSLog(@"did read\n" );
     }
-  }
-  //NSLog(@"SNF5\n" );
+  } }
+  //#endif
+
 #ifdef SNF_DEBUG
   std::cout << "Done!\n";
   //std::cout << "Total number of pivot moves: " << number_of_pivots << "\n";
