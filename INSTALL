@@ -1,11 +1,32 @@
 CHomP Installation Instructions.
 
-Type 
+PREREQUISITES
+=============
+
+First install Boost. On a Mac this can be
+accomplished by obtaining the "Homebrew" software and
+typing:
+
+brew install boost
+
+Optionally, install CImg and X11 (for graphics).
+
+On a Mac this can be accomplished with:
+brew install cimg
+
+and by downloading and installing XQuartz. 
+Note that you will need to log out and log back in after
+XQuartz installs. 
+
+INSTALLATION
+============
+To install CHomP, type 
 
 ./install.sh [install-prefix]
 
 If [install-directory] is omitted the installation
-will be to /usr/local on Mac OS X or Linux.
+will be to /usr/local on Mac OS X or Linux (which is
+recommended.)
 
 What is installed:
 
