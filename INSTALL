@@ -1,0 +1,22 @@
+CHomP Installation Instructions.
+
+Type 
+
+./install.sh [install-prefix]
+
+If [install-directory] is omitted the installation
+will be to /usr/local on Mac OS X or Linux.
+
+What is installed:
+
+(1) Header files for CHomP in
+ /usr/local/include/chomp/
+
+(2) A patch to boost to allow serialization of unordered types
+ /usr/local/include/boost/serialization/*.hpp
+
+(3) Binaries for CHomP in
+ /usr/local/bin/
+
+If you encounter difficulties contact Shaun Harker
+sharker81@gmail.com
