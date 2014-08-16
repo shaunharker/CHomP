@@ -22,7 +22,9 @@ cd ${CUR_DIR}
 rm -rf build
 mkdir build
 cd build
-cmake $ARGUMENT ..
+# Note: we pass `which g++` because apparently
+#  CMake doesn't necessarily pick the compiler on the path
+cmake -DCMAKE_CXX_COMPILER=`which g++` $ARGUMENT ..
 make
 make install
 make test || echo "One or more tests failed.\n"
