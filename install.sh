@@ -14,7 +14,7 @@ if [ $# -ge 1 ]; then
         PREFIX=`pwd -P`
     fi
     echo "CHomP will be installed in '${PREFIX}'"    
-    ARGUMENT=-DCMAKE_INSTALL_PREFIX=${PREFIX} -DCMAKE_INCLUDE_PATH=${PREFIX} -DCMAKE_LIBRARY_PATH=${PREFIX}
+    ARGUMENT=-DCMAKE_INSTALL_PREFIX=${PREFIX} -DCMAKE_INCLUDE_PATH=${PREFIX}/include -DCMAKE_LIBRARY_PATH=${PREFIX}/lib
 fi
 
 cd ${CUR_DIR}
