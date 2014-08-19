@@ -12,10 +12,11 @@ endif(NOT X11_FOUND)
 file(GLOB HEADERS ./include/chomp/*.h)
 
 include_directories( ./include 
+                     /usr/local/include
 		     ${USER_INCLUDE_PATH}
                       ${X11_X11_INCLUDE_PATH} )
 
-link_directories( ${USER_LIBRARY_PATH} )
+link_directories( ${USER_LIBRARY_PATH} /usr/local/lib )
 
 set(LIBS ${LIBS} ${X11_LIBRARIES})
 
