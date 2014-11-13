@@ -116,6 +116,13 @@ inline void MatrixComplex::loadFromFile ( const char * FileName) {
 	}
 	input_file . close ();
 	
+  for ( int d = 0; d <= dimension(); ++ d ) {
+    for ( Index i = 0; i < size(d); ++ i ) {
+      boundaries_[d][i] = simplify ( boundaries_[d][i] );
+      coboundaries_[d][i] = simplify ( coboundaries_[d][i] );
+    }
+  }
+  
 	return;
 }
 
