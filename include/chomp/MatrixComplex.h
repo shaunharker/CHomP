@@ -93,7 +93,7 @@ inline void MatrixComplex::loadFromFile ( const char * FileName) {
     if ( linedata . size () == 1 ) {
       current_dimension = linedata[0];
       //std::cout << "Dimension " << current_dimension << "\n";
-      if ( current_dimension >= boundaries_ . size () ) {
+      if ( current_dimension + 2 > boundaries_ . size () ) {
         boundaries_.resize(current_dimension + 2);
         coboundaries_.resize(current_dimension + 2);
       }
