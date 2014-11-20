@@ -32,8 +32,54 @@ int main ( int argc, char * argv [] ) {
   }
   std::cout << "\n";
   
-  
   if ( argc > 2 ) {
+
+  std::cout << "------------\n";
+  std::cout << "| Homology |\n";
+  std::cout << "------------\n";  
+  for ( int dim = 0; dim <= complex . dimension (); ++ dim ) {
+    std::cout << "  H_" << dim << " = ";
+    int betti = 0;
+    for ( unsigned int gen_index = 0; gen_index < gen [ dim ] . size (); ++gen_index ) {
+      if ( gen[dim][gen_index].second == 0 ) ++ betti;
+    }
+    bool first = true;
+    bool torsion = false;
+    if ( betti != 0 ) { 
+      std::cout << "\u2124" << "^" << betti;
+      first = false;
+    }
+    for ( unsigned int gen_index = 0; gen_index < gen [ dim ] . size (); ++gen_index ) {
+      if ( gen[dim][gen_index].second != 0 ) {
+        if ( not first ) {
+          std::cout << " \u2295 ";
+        } else {
+          first = false;
+        }
+        std::cout << "\u2124" << "_" << gen[dim][gen_index].second;
+        torsion = true;
+      }
+    }
+    if ( betti == 0 && not torsion ) std::cout << "0";
+    std::cout << "\n";
+  }
+  std::cout << "\n";
+  
+  std::cout << "--------------\n";
+  std::cout << "| Generators |\n";
+  std::cout << "--------------\n";
+
+  for ( int dim = 0; dim <= complex . dimension (); ++ dim ) {
+    std::cout << "H_" << dim << ":\n";
+    for ( unsigned int gen_index = 0; gen_index < gen [ dim ] . size (); ++gen_index ) {
+      std::cout << "  (" << gen[dim][gen_index].second << ") : " << gen [ dim ] [gen_index ] . first << "\n";
+    }
+  }
+  
+  }
+
+
+  if ( argc > 3 ) {
     
     std::cout << "----------------------------------\n";
     std::cout << "  (Index,dim)     <=>    Cell     \n";

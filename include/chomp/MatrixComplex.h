@@ -83,6 +83,7 @@ inline void MatrixComplex::loadFromFile ( const char * FileName) {
 		getline( input_file, line );
 		std::istringstream is( line );
 		if ( line . length () == 0 ) continue;
+    //std::cout << line << "\n";
     std::vector<int> linedata;
 		while ( is . good () ) {
 			int v;
