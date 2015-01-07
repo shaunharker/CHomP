@@ -3,6 +3,9 @@
 # to the root binary directory of the project as ${CHomP_BINARY_DIR}. 
 cmake_minimum_required (VERSION 2.6) 
 project (CHomP) 
+# Append directories in case people use MacPorts
+list(APPEND CMAKE_LIBRARY_PATH /opt/local/lib)
+list(APPEND CMAKE_INCLUDE_PATH /opt/local/include)
 find_package(Threads)
 find_package(X11)
 if(NOT X11_FOUND)
