@@ -5,7 +5,11 @@ cmake_minimum_required (VERSION 2.6)
 project (CHomP) 
 
 # C++11 Support
+if( CMAKE_COMPILER_IS_GNUCXX )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -DNDEBUG")
+else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -O3 -DNDEBUG")
+endif()
 
 # Append directories in case people use MacPorts
 list(APPEND CMAKE_LIBRARY_PATH /opt/local/lib)
