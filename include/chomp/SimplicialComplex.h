@@ -12,7 +12,7 @@
 #include <iterator>
 #include <sstream>
 #include <queue>
-
+#include <algorithm>
 
 #include "boost/unordered_set.hpp"
 
@@ -175,21 +175,21 @@ inline void SimplicialComplex::loadFromFile ( const char * FileName) {
 		std::istringstream is( line );
 		if ( line . length () == 0 ) continue;
 		max_simplices . push_back ( std::vector < int > () );
-		while ( is . good () ) {
-			int v;
-			is >> v;
-			max_simplices . back () . push_back ( v );
-		}
+		int v;
+		while ( is >> v ) max_simplices . back () . push_back ( v );
+		std::sort ( max_simplices . back () . begin (), max_simplices . back () . end () );
 	}
 	input_file . close ();
 	
   //DEBUG
+  //std::cout << "Begin load debug.\n";
 	// for ( unsigned int i = 0; i < max_simplices . size (); ++ i ) {
 	//	for ( unsigned int vi = 0; vi < max_simplices [ i ] . size (); ++ vi ) {
 	//		std::cout << max_simplices [ i ] [ vi ] << " ";
-	//	}
+  //		}
 	//	std::cout << "\n";
 	//}
+	//std::cout << "End load debug.\n";
 	
 	boost::unordered_set < Simplex > processed_;
 	std::queue < Simplex > work_q;
