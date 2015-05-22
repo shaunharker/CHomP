@@ -111,7 +111,7 @@ inline void RelativeComplex::project (Chain * output,
     int D = output -> dimension () = input . dimension ();
     BOOST_FOREACH ( const Term & t, input () ) {
     	Term s ( cellToIndex ( t . index (), D ), t . coef () );
-    	if ( s == size ( D ) ) continue;
+    	if ( s . index () == size ( D ) ) continue;
     	* output += s; 
     }
     *output = simplify ( *output ); 
