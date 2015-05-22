@@ -69,9 +69,10 @@ private:
 inline RelativeComplex::RelativeComplex ( Complex * X, 
  	                                        const std::vector < boost::unordered_set <uint64_t> > & A ) : full ( X )  {
   for ( int d = 0; d <= X -> dimension (); ++ d ) {
-    if ( d >= A . size () ) break;
+    bool insert_all = false;
+    if ( d >= A . size () ) insert_all = true;
  		for ( uint64_t i = 0; i < X -> size ( d ); ++ i ) {
- 			if ( A [ d ] . count ( i ) == 0 ) insertCell ( i, d );
+ 			if ( insert_all || (A [ d ] . count ( i ) == 0) ) insertCell ( i, d );
  		}
  	}
 }
