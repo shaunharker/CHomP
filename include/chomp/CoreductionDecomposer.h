@@ -27,11 +27,11 @@ namespace chomp {
 
 class CoreductionDecomposer : public Decomposer {
 private:
-  std::vector < uint32_t > queen_end_; 
-  std::vector < uint32_t > ace_end_;
-  std::vector < uint32_t > king_rbegin_;
-  std::vector < std::vector < uint32_t > > toOriginalIndexing_;
-  std::vector < std::vector < uint32_t > > permute;
+  std::vector < uint64_t > queen_end_; 
+  std::vector < uint64_t > ace_end_;
+  std::vector < uint64_t > king_rbegin_;
+  std::vector < std::vector < uint64_t > > toOriginalIndexing_;
+  std::vector < std::vector < uint64_t > > permute;
 
 public:
 
@@ -252,15 +252,15 @@ inline void CoreductionDecomposer::decompose ( Complex & complex ) {
     std::vector < Index > & K = kings [ d + 1 ];
     std::vector < Index > & Q = queens [ d ];
 
-    uint32_t ai = Q . size ();
-    uint32_t ki = complex . size ( d + 1 ) - K . size ();
-    uint32_t qi = Q . size ();
+    uint64_t ai = Q . size ();
+    uint64_t ki = complex . size ( d + 1 ) - K . size ();
+    uint64_t qi = Q . size ();
 
-    for ( uint32_t i = 0; i < Q . size (); ++ i ) {
+    for ( uint64_t i = 0; i < Q . size (); ++ i ) {
       permute [ d ] [ Q [ i ] ] = -- qi;
       permute [ d + 1 ] [ K [ i ] ] = ki ++;
     }
-    for ( uint32_t i = 0; i < A . size (); ++ i ) {
+    for ( uint64_t i = 0; i < A . size (); ++ i ) {
       permute [ d ] [ A [ i ] ] = ai ++;
     }
     

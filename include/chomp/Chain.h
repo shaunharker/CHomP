@@ -21,7 +21,7 @@ namespace chomp {
 /*********************
  *      Index        *
  *********************/
-typedef uint32_t Index;
+typedef uint64_t Index;
 
 /*********************
  *      Term         *
@@ -63,7 +63,7 @@ template < class C >
 class CustomChain {
 private:
   typedef C Container;
-  typedef uint32_t size_type;
+  typedef uint64_t size_type;
   int dimension_;
   Container container_; 
 public:

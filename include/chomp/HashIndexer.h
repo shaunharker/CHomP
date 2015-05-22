@@ -17,7 +17,7 @@ public:
   typedef M Mapped;
   void clear ( void );
   void initialize ( const std::vector < Key > & data );
-  uint32_t size ( void ) const;
+  uint64_t size ( void ) const;
   const Key & key ( Mapped i ) const;
   //Mapped & rank ( const Key & k );
   const Mapped rank ( const Key & k ) const;
@@ -42,7 +42,7 @@ HashIndexer<K,M>::initialize ( const std::vector < Key > & keys ) {
   }
 }
 
-template < class K, class M > uint32_t
+template < class K, class M > uint64_t
 HashIndexer<K,M>::size ( void ) const {
   return data_ . size ();
 }
@@ -71,7 +71,7 @@ HashIndexer<K,M>::rank ( const Key & k ) const {
 template < class K, class M > void 
 HashIndexer<K,M>::reindex ( const std::vector < Mapped > & permute ) {
   std::vector < Key > new_keys ( size () );
-  for ( uint32_t i = 0; i < size (); ++ i ) {
+  for ( uint64_t i = 0; i < size (); ++ i ) {
     new_keys [ permute [ i ] ] = keys_ [ i ];
   }
   initialize ( new_keys );

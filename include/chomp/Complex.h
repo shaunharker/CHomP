@@ -97,7 +97,7 @@ void BoundaryMatrix ( SparseMatrix < Ring > * output_matrix,
 inline void BoundaryMatrix ( SparseMatrix < Ring > * output_matrix, 
                             const Complex & complex, 
                             const int d ) {
-  uint32_t rows, columns;
+  uint64_t rows, columns;
   if ( d > 0 ) rows = complex . size ( d - 1 ); else rows = 0;
   if ( d <= complex . dimension () ) columns = complex . size ( d ); else columns = 0;
   output_matrix -> resize ( rows, columns );

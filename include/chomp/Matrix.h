@@ -32,7 +32,7 @@ inline Matrix chainsToMatrix ( const std::vector < Chain > & chains,
                         int dim ) {
   //std::cout << "chainsToMatrix.  d= " << dim << " (i,j) = (" << complex . size ( dim ) << ", " << chains . size () << ")\n";
   Matrix result ( complex . size ( dim ), chains . size () );
-  for ( uint32_t chain_num = 0; 
+  for ( uint64_t chain_num = 0; 
         chain_num < chains . size (); 
         ++ chain_num ) {
     Chain chain = simplify ( chains [ chain_num ] );
@@ -48,7 +48,7 @@ inline Matrix chainsToMatrix ( const std::vector < std::pair < Chain, Ring > > &
                        int dim ) {
     //std::cout << "chainsToMatrix.  d= " << dim << " (i,j) = (" << complex . size ( dim ) << ", " << chains . size () << ")\n";
   Matrix result ( complex . size ( dim ), chains . size () );
-  for ( uint32_t chain_num = 0; 
+  for ( uint64_t chain_num = 0; 
         chain_num < chains . size (); 
         ++ chain_num ) {
     Chain chain = simplify ( chains [ chain_num ] . first );

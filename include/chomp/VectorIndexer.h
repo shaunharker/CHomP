@@ -17,7 +17,7 @@ public:
   typedef M Mapped;
   void clear ( void );
   void initialize ( const std::vector < Key > & data );
-  uint32_t size ( void ) const;
+  uint64_t size ( void ) const;
   const Key & key ( Mapped i ) const;
   Mapped & rank ( const Key & k );
   const Mapped & rank ( const Key & k ) const;
@@ -43,7 +43,7 @@ VectorIndexer<K,M>::initialize ( const std::vector < Key > & keys ) {
   }
 }
 
-template < class K, class M > uint32_t
+template < class K, class M > uint64_t
 VectorIndexer<K,M>::size ( void ) const {
   return keys_ . size ();
 }

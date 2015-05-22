@@ -35,7 +35,7 @@ class Toplex {
 public:
   /* typedefs */
   typedef GridElement value_type;
-  typedef uint32_t size_type;
+  typedef uint64_t size_type;
   typedef Toplex_const_iterator iterator;
   typedef iterator const_iterator;
   typedef GridElement Top_Cell; //compatibility
@@ -130,7 +130,7 @@ public:
   coarsen ( const Container & coarsen_to );
   
   /// GridElementToCubes
-  void GridElementToCubes ( std::vector<std::vector < uint32_t > > * cubes, 
+  void GridElementToCubes ( std::vector<std::vector < uint64_t > > * cubes, 
                         const GridElement e, int d ) const;
   
   /// relativeComplex
@@ -1144,7 +1144,7 @@ inline void Toplex::coarsen ( const CellContainer & coarsen_to ) {
   begin_ = iterator ( n );
 }
 
-inline void Toplex::GridElementToCubes ( std::vector<std::vector < uint32_t > > * cubes, 
+inline void Toplex::GridElementToCubes ( std::vector<std::vector < uint64_t > > * cubes, 
                      const GridElement e, int depth ) const {
   // Obtain the prefix
   //std::cout << "GEtoCubes: " << geometry ( e ) << "\n";
@@ -1154,7 +1154,7 @@ inline void Toplex::GridElementToCubes ( std::vector<std::vector < uint32_t > > 
   //std::cout << "  gedepth = " << GridElement_depth << ", from " << p . size () << "\n";
   if ( GridElement_depth > depth ) GridElement_depth = depth; //effectively truncates the prefix
   // Determine width
-  typedef std::vector < uint32_t > Cube;
+  typedef std::vector < uint64_t > Cube;
   Cube cube ( D, 0 );
   int pos = 0;
   
@@ -1162,7 +1162,7 @@ inline void Toplex::GridElementToCubes ( std::vector<std::vector < uint32_t > > 
   //for ( int d = 0; d < GridElement_depth; ++ d ) {
   //  for ( int dim = 0; dim < D; ++ dim ) {
   //    cube [ dim ] <<= 1;
-  //    cube [ dim ] |= (uint32_t) p [ pos ++ ];
+  //    cube [ dim ] |= (uint64_t) p [ pos ++ ];
   //  }
   //}
 
@@ -1170,7 +1170,7 @@ inline void Toplex::GridElementToCubes ( std::vector<std::vector < uint32_t > > 
   for ( int d = 0; d < GridElement_depth; ++ d ) {
     if ( dim == D ) dim = 0;
     cube [ dim ] <<= 1;
-    cube [ dim ] |= (uint32_t) p [ pos ++ ];
+    cube [ dim ] |= (uint64_t) p [ pos ++ ];
     ++ dim;
   }
   // make the cubes
@@ -1231,7 +1231,7 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
   //std::cout << "XGridElements:\n";
   
   // Make set of cubes, and learn bounds of the cubes.
-  typedef std::vector < uint32_t > Cube;
+  typedef std::vector < uint64_t > Cube;
   Cube mincube ( D, -1 );
   Cube maxcube ( D, 0 );
   Rect newbounds ( D );
@@ -1257,7 +1257,7 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
     }
   }
   
-  std::vector < uint32_t > dimension_sizes ( D, 1 );
+  std::vector < uint64_t > dimension_sizes ( D, 1 );
   std::vector < bool > is_periodic = periodic_;
   for ( int d = 0; d < D; ++ d ) {
     dimension_sizes [ d ] = maxcube [ d ] - mincube [ d ] + 1;
@@ -1273,7 +1273,7 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
   BOOST_FOREACH ( GridElement e, XGridElements ) {
     //std::cout << e << "\n";
     //std::cout << "GEOMETRY = " << geometry ( e ) << "\n"; 
-    typedef std::vector < uint32_t > Cube;
+    typedef std::vector < uint64_t > Cube;
     std::vector < Cube > cubes;
     GridElementToCubes ( &cubes, e, depth );
     BOOST_FOREACH ( Cube & cube, cubes ) {
@@ -1296,7 +1296,7 @@ inline void Toplex::relativeComplex ( RelativePair * pair,
   //std::cout << "AGridElements:\n";
   BOOST_FOREACH ( GridElement e, AGridElements ) {
     //std::cout << e << "\n";
-    typedef std::vector < uint32_t > Cube;
+    typedef std::vector < uint64_t > Cube;
     std::vector < Cube > cubes;
     GridElementToCubes ( &cubes, e, depth );
     BOOST_FOREACH ( Cube & cube, cubes ) {

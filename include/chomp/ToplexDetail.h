@@ -9,7 +9,7 @@
 
 namespace chomp {
 
-typedef uint32_t GridElement;
+typedef uint64_t GridElement;
 
 /***************
  * struct Node *

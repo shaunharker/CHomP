@@ -69,38 +69,38 @@ namespace chomp {
     /// - the lower left buffer is so the coboundary routine doesn't need a special check to see if it is at 
     /// the edge of memory
     /// - the upper right buffer is to store the lower dimensional cells which may boundaries
-    void initialize ( const std::vector<uint32_t> & sizes );
-    void initialize ( const std::vector<uint32_t> & sizes, const std::vector<bool> & periodic );
+    void initialize ( const std::vector<uint64_t> & sizes );
+    void initialize ( const std::vector<uint64_t> & sizes, const std::vector<bool> & periodic );
     
     /// fullCube
     /// returns a list of "Cells" corresponding to the cube coordinates
     std::vector < CubicalComplex::Cell >
-    fullCube ( const std::vector<uint32_t> & cube_coordinates ) const;
+    fullCube ( const std::vector<uint64_t> & cube_coordinates ) const;
     
     /// fullCube
     /// returns a list of "Index"s corresponding to the cube coordinates
     std::vector < std::vector < Index > >
-    fullCubeIndexes ( const std::vector<uint32_t> & cube_coordinates ) const;
+    fullCubeIndexes ( const std::vector<uint64_t> & cube_coordinates ) const;
     
     /// addFullCube.
     /// Adds the full cube (3^d cells) indicated by "cube_coordinates". */
-    void addFullCube ( const std::vector<uint32_t> & cube_coordinates );
+    void addFullCube ( const std::vector<uint64_t> & cube_coordinates );
     
     /// insertRect -- see geometric interface
     
     /// removeFullCube.
     /// Remove the full cube (3^d cells) indicated by "cube_coordinates" 
-    void removeFullCube ( const std::vector<uint32_t> & cube_coordinates );
+    void removeFullCube ( const std::vector<uint64_t> & cube_coordinates );
     
     /// finalize. Call one complex is created in order to compute indexing
     /// used by algorithms. 
     void finalize ( void );
     
     /// cubeIndex. Get indexes of highest dimensional cells.
-    Index cubeIndex ( const std::vector<uint32_t> & cube_coordinates ) const;
-    std::vector<uint32_t> indexToCube ( Index i ) const;
-    std::vector<uint32_t> addressToCube ( uint64_t address ) const;
-    uint64_t cubeToAddress ( const std::vector<uint32_t> & cube ) const;
+    Index cubeIndex ( const std::vector<uint64_t> & cube_coordinates ) const;
+    std::vector<uint64_t> indexToCube ( Index i ) const;
+    std::vector<uint64_t> addressToCube ( uint64_t address ) const;
+    uint64_t cubeToAddress ( const std::vector<uint64_t> & cube ) const;
 
     /// low-level interface
     bool bitmap ( const uint64_t address ) const;
@@ -137,11 +137,11 @@ namespace chomp {
     
     // geometry and geometryOfCube: give floating point bounds of geometric incarnation of cell
     Rect geometry ( Index i, int dim ) const;
-    Rect geometryOfCube ( const std::vector < uint32_t > & cube ) const;
+    Rect geometryOfCube ( const std::vector < uint64_t > & cube ) const;
     
   private:
     /* Cubical Complex */
-    std::vector<uint32_t> dimension_sizes_; 
+    std::vector<uint64_t> dimension_sizes_; 
     std::vector<uint64_t> jump_values_; 
     boost::unordered_set < uint64_t > cells_;
     std::vector<bool> periodic_;
@@ -153,12 +153,12 @@ namespace chomp {
     template < class InsertIterator >
     void coverHelper ( InsertIterator & ii,
                       uint64_t /* DANGER */ partial,
-                      const std::vector < uint32_t > & low, 
-                      const std::vector < uint32_t > & high,
+                      const std::vector < uint64_t > & low, 
+                      const std::vector < uint64_t > & high,
                       int d ) const;
-    void insertRectHelper (std::vector < uint32_t > & selected,
-                           const std::vector < uint32_t > & low, 
-                           const std::vector < uint32_t > & high,
+    void insertRectHelper (std::vector < uint64_t > & selected,
+                           const std::vector < uint64_t > & low, 
+                           const std::vector < uint64_t > & high,
                            int d );
   };
   
@@ -209,7 +209,7 @@ namespace chomp {
   /// in a periodic dimension, we again use addresses from 1 <= . <= user_dim_sizes 
   inline uint64_t CubicalComplex::alias ( uint64_t address ) const {
     /// convert to cube coordinates
-    std::vector < uint32_t > cube = addressToCube ( address );
+    std::vector < uint64_t > cube = addressToCube ( address );
     ///
     uint64_t result = cubeToAddress ( cube ) + (address & mask_);
     for ( int d = 0; d < dimension (); ++ d ) {
@@ -310,7 +310,7 @@ namespace chomp {
     
     std::vector<int> min_entry (dimension (), 0);
     std::vector<int> max_entry (dimension (), 0);
-    std::vector<uint32_t> user_dimension_sizes (dimension (), 0);
+    std::vector<uint64_t> user_dimension_sizes (dimension (), 0);
     
     /* Return to beginning of file */
     input_file . clear ();
@@ -355,7 +355,7 @@ namespace chomp {
     
     /* Now scan through every line of text and read in full cubes */
     {
-    std::vector<uint32_t> cube_coordinates( dimension (), 0);
+    std::vector<uint64_t> cube_coordinates( dimension (), 0);
     while ( not input_file . eof () ) {
       input_file . getline ( text_buffer, 512, '\n' );
       index = 0; 
@@ -387,7 +387,7 @@ namespace chomp {
         exit ( 1 ); } /* if */
       index = 0;
       /* Now scan through every line of text and read in full cubes */
-      std::vector<uint32_t> cube_coordinates( dimension (), 0);
+      std::vector<uint64_t> cube_coordinates( dimension (), 0);
       while ( not input_rel_file . eof () ) {
         input_rel_file . getline ( text_buffer, 512, '\n' );
         index = 0;
@@ -413,7 +413,7 @@ namespace chomp {
   } /* CubicalComplex::loadFromFile */
   
   
-  inline void CubicalComplex::initialize ( const std::vector<uint32_t> & user_dimension_sizes ) {
+  inline void CubicalComplex::initialize ( const std::vector<uint64_t> & user_dimension_sizes ) {
     dimension () = user_dimension_sizes . size ();
     periodic_ . resize ( dimension (), false );
     dimension_sizes_ . resize ( dimension (), 0 );
@@ -424,7 +424,7 @@ namespace chomp {
       dimension_sizes_ [ d ] = ( 2 + user_dimension_sizes [ d ] );
       jump_values_ [ d ] = number_of_full_cubes;
       number_of_full_cubes *= dimension_sizes_ [ d ]; 
-      uint32_t temp = user_dimension_sizes [ d ] + 2;
+      uint64_t temp = user_dimension_sizes [ d ] + 2;
       while ( temp > 0 ) {
         temp >>= 1;
         digits ++;
@@ -439,7 +439,7 @@ namespace chomp {
     
     //std::cout << "CubicalComplex::initialize.\n";
     //std::cout << "user_dimension_sizes = " ;
-    //BOOST_FOREACH ( uint32_t x, user_dimension_sizes ) std::cout << x << " ";
+    //BOOST_FOREACH ( uint64_t x, user_dimension_sizes ) std::cout << x << " ";
     //std::cout << "\n";
     
     //bitmap_ . clear ();
@@ -447,16 +447,16 @@ namespace chomp {
     
   } /* CubicalComplex::initialize */
   
-  inline void CubicalComplex::initialize ( const std::vector<uint32_t> & user_dimension_sizes,
+  inline void CubicalComplex::initialize ( const std::vector<uint64_t> & user_dimension_sizes,
                                           const std::vector < bool > & periodic ) {
     initialize ( user_dimension_sizes );
     periodic_ = periodic;
   }
 
   inline std::vector < CubicalComplex::Cell >
-  CubicalComplex::fullCube ( const std::vector<uint32_t> & cube_coordinates ) const {
+  CubicalComplex::fullCube ( const std::vector<uint64_t> & cube_coordinates ) const {
     std::vector < CubicalComplex::Cell > result;
-    std::vector<uint32_t> neighbor_coordinates( dimension (), 0);
+    std::vector<uint64_t> neighbor_coordinates( dimension (), 0);
     /* Calculate the number of the read cube */
     uint64_t full_cube_number = 0;
     for ( int d = 0; d < dimension (); ++ d ) 
@@ -480,7 +480,7 @@ namespace chomp {
       for( int piece_index = 0; piece_index < 1 << dimension (); piece_index ++ ) 
         if ( ( piece_index & ~neighbor_index ) == 0)  /* clever bitwise test */  {
           /* Figure out the dimension of the cell */
-          uint32_t cell_dimension = 0;
+          uint64_t cell_dimension = 0;
           for ( int bit_index = 0; bit_index < dimension (); ++ bit_index ) {
             if ( piece_index & ( 1 << bit_index ) ) ++ cell_dimension; 
           } /* for */
@@ -499,7 +499,7 @@ namespace chomp {
   /// fullCube
   /// returns a list of "Indexes" corresponding to the cube coordinates
   inline std::vector < std::vector < Index > >
-  CubicalComplex::fullCubeIndexes ( const std::vector<uint32_t> & cube_coordinates ) const {
+  CubicalComplex::fullCubeIndexes ( const std::vector<uint64_t> & cube_coordinates ) const {
     std::vector < CubicalComplex::Cell > cubecells = fullCube ( cube_coordinates );
     std::vector < std::vector < Index > > result ( dimension () + 1 );
     BOOST_FOREACH ( Cell address, cubecells ) {
@@ -514,9 +514,9 @@ namespace chomp {
   }
   
   
-  inline void CubicalComplex::addFullCube ( const std::vector<uint32_t> & cube_coordinates ) {
+  inline void CubicalComplex::addFullCube ( const std::vector<uint64_t> & cube_coordinates ) {
     //std::cout << "addFullCube called with coordinates ";
-    //BOOST_FOREACH ( uint32_t x, cube_coordinates ) std::cout << x << " ";
+    //BOOST_FOREACH ( uint64_t x, cube_coordinates ) std::cout << x << " ";
     //std::cout << "\n";
     std::vector < CubicalComplex::Cell > full_cube_cells = fullCube ( cube_coordinates );
     BOOST_FOREACH ( const Cell & cell, full_cube_cells ) {
@@ -525,14 +525,14 @@ namespace chomp {
     }
   } /* CubicalComplex::addFullCube */
   
-  inline void CubicalComplex::removeFullCube ( const std::vector<uint32_t> & cube_coordinates ) {
+  inline void CubicalComplex::removeFullCube ( const std::vector<uint64_t> & cube_coordinates ) {
     std::vector < CubicalComplex::Cell > full_cube_cells = fullCube ( cube_coordinates );
       BOOST_FOREACH ( const Cell & cell, full_cube_cells ) erase ( cell );
   } /* CubicalComplex::removeFullCube */
   
   inline void CubicalComplex::finalize ( void ) {
     BOOST_FOREACH ( uint64_t address, cells_ ) {
-      int d = __builtin_popcount ( ( uint32_t) ( address & mask_ ) );
+      int d = __builtin_popcount ( ( uint64_t) ( address & mask_ ) );
       insertCell ( address, d );
     }
   } /* CubicalComplex::finalize */
@@ -549,25 +549,25 @@ namespace chomp {
     cells_ . erase ( address );
   }
   
-  inline Index CubicalComplex::cubeIndex ( const std::vector<uint32_t> & cube_coordinates ) const {
+  inline Index CubicalComplex::cubeIndex ( const std::vector<uint64_t> & cube_coordinates ) const {
     uint64_t full_cube_number = 0;
     for ( int d = 0; d < dimension (); ++ d ) 
       full_cube_number += jump_values_ [d] * ( (uint64_t) cube_coordinates [d] + 1 ); // lower-left buffer +1
     return cellToIndex ( (full_cube_number << dimension ()) + mask_, dimension () );
   }
   
-  inline std::vector<uint32_t> CubicalComplex::indexToCube ( Index i ) const {
+  inline std::vector<uint64_t> CubicalComplex::indexToCube ( Index i ) const {
     uint64_t address = indexToCell ( i, dimension () );
     return addressToCube ( address );
   }
   
   // if address is not 
-  inline std::vector<uint32_t> CubicalComplex::addressToCube ( uint64_t address ) const {
+  inline std::vector<uint64_t> CubicalComplex::addressToCube ( uint64_t address ) const {
     int D = dimension ();
-    std::vector<uint32_t> result ( D );
+    std::vector<uint64_t> result ( D );
     address >>= D;
     for ( int d = 0; d < D; ++ d ) {
-      uint32_t pos = address % dimension_sizes_ [ d ];
+      uint64_t pos = address % dimension_sizes_ [ d ];
       address /= dimension_sizes_ [ d ];
       if ( periodic_ [ d ] ) {
         if ( pos == 0 ) {
@@ -583,7 +583,7 @@ namespace chomp {
     return result;
   }
   
-  inline uint64_t CubicalComplex::cubeToAddress ( const std::vector<uint32_t> & cube ) const {
+  inline uint64_t CubicalComplex::cubeToAddress ( const std::vector<uint64_t> & cube ) const {
     uint64_t full_cube_number = 0;
     for ( int d = 0; d < dimension (); ++ d ) 
       full_cube_number += jump_values_ [d] * ( (uint64_t) cube [d] + 1 ); // lower-left buffer +1
@@ -602,8 +602,8 @@ namespace chomp {
   void
   CubicalComplex::coverHelper ( InsertIterator & ii,
                                uint64_t /* DANGER */ partial,
-                               const std::vector < uint32_t > & low, 
-                               const std::vector < uint32_t > & high,
+                               const std::vector < uint64_t > & low, 
+                               const std::vector < uint64_t > & high,
                                int d ) const {
     //std::cout << d << ": coverHelper " << partial << "\n";
     if ( d == 0 ) {
@@ -611,7 +611,7 @@ namespace chomp {
       address |= mask_;
       // DEBUG
       /*
-       std::vector < uint32_t > cube = addressToCube ( address );
+       std::vector < uint64_t > cube = addressToCube ( address );
        for ( int k = 0; k < (int) cube . size (); ++ k ) {
        std::cout << cube [ k ] << " / " << dimension_sizes_ [ k ] << " ; ";
        }
@@ -631,7 +631,7 @@ namespace chomp {
     //std::cout << "before high[" << d << "] = " << high[d] << "\n";
     
     //long my_magic_number = rand () % 1000;
-    for ( uint32_t i = low [ d ]; i <= high [ d ]; ++ i ) {
+    for ( uint64_t i = low [ d ]; i <= high [ d ]; ++ i ) {
     //std::cout << "magic = " << my_magic_number << ", i = " << i << "\n";
       //  std::cout << "low[" << d << "] = " << low[d] << "\n";
     //std::cout << "high[" << d << "] = " << high[d] << "\n";
@@ -697,8 +697,8 @@ namespace chomp {
     // Convert rect to scale of dimension sizes
     // Be careful about the padding.
     int D = dimension ();
-    std::vector < uint32_t > low ( D );
-    std::vector < uint32_t > high ( D );
+    std::vector < uint64_t > low ( D );
+    std::vector < uint64_t > high ( D );
     for ( int d = 0; d < D; ++ d ) {
       double lowbound = bounds () . lower_bounds [ d ];
       double highbound = bounds () . upper_bounds [ d ];
@@ -714,8 +714,8 @@ namespace chomp {
       if ( upper + lowbound > highbound ) upper = highbound - lowbound;
       //std::cout << "[" << lower << ", " << upper << "]\n";
       //std::cout << "scaled: [" << scale*lower << ", " << scale * upper << "]\n";
-      low [ d ] = (uint32_t) ( scale * lower );
-      high [ d ] = (uint32_t) ( scale * upper );
+      low [ d ] = (uint64_t) ( scale * lower );
+      high [ d ] = (uint64_t) ( scale * upper );
       //std::cout << " low[" << d << "] = " << low [ d ] << ", high["<<d<<"] = " << high [ d ] << "\n";
       //std::cout << "low grid line = " << lowbound + (double)(low [ d ]  ) / scale << "\n";
       //std::cout << "high grid line = " << lowbound + (double)(high [ d ] + 1) / scale << "\n";
@@ -747,11 +747,11 @@ namespace chomp {
       stepsize [ d ] /= dimension_sizes_ [ d ] - 2;
     }
     // number of d-cells
-    uint32_t N = size ( dimension () );
+    uint64_t N = size ( dimension () );
     // Prepare main loop
-    typedef std::vector < std::pair<uint32_t, uint32_t > > Box;
+    typedef std::vector < std::pair<uint64_t, uint64_t > > Box;
     std::stack < Box > workstack;
-    Box entire ( dimension (), std::pair<uint32_t, uint32_t> (0,0) );
+    Box entire ( dimension (), std::pair<uint64_t, uint64_t> (0,0) );
     for ( int d = 0; d < dimension (); ++ d ) {
       entire [ d ] . second = dimension_sizes_ [ d ] - 2;
     }
@@ -789,7 +789,7 @@ namespace chomp {
       // If the best split is trivial, then b corresponds to
       // a cube. Toss it into result.
       if ( biggest_width == 1 ) {
-        std::vector<uint32_t> cube_coordinates ( dimension () );
+        std::vector<uint64_t> cube_coordinates ( dimension () );
         for ( int d = 0; d < dimension (); ++ d ) {
           cube_coordinates [ d ] = b [ d ] . first;
         }
@@ -883,14 +883,14 @@ namespace chomp {
   
   inline void
   CubicalComplex::insertRectHelper 
-  (std::vector < uint32_t > & selected,
-   const std::vector < uint32_t > & low, 
-   const std::vector < uint32_t > & high,
+  (std::vector < uint64_t > & selected,
+   const std::vector < uint64_t > & low, 
+   const std::vector < uint64_t > & high,
    int d ) {
     if ( d == dimension () ) {
       addFullCube ( selected ); 
     } else {
-      for ( uint32_t x = low [ d ]; x <= high [ d ]; ++ x ) {
+      for ( uint64_t x = low [ d ]; x <= high [ d ]; ++ x ) {
         selected [ d ] = x;
         insertRectHelper ( selected, low, high, d + 1 ); 
       }
@@ -903,8 +903,8 @@ namespace chomp {
     // Convert prism to scale of dimension sizes
     // Be careful about the padding.
     int D = dimension ();
-    std::vector < uint32_t > low ( D );
-    std::vector < uint32_t > high ( D );
+    std::vector < uint64_t > low ( D );
+    std::vector < uint64_t > high ( D );
     for ( int d = 0; d < D; ++ d ) {
       double lowbound = bounds () . lower_bounds [ d ];
       double highbound = bounds () . upper_bounds [ d ];
@@ -915,14 +915,14 @@ namespace chomp {
       double upper = p . upper_bounds [ d ] - lowbound;
       if ( upper < 0 ) upper = 0;
       if ( upper + lowbound > highbound ) upper = highbound;
-      low [ d ] = (uint32_t) ( scale * lower );
-      high [ d ] = (uint32_t) ( scale * upper );
+      low [ d ] = (uint64_t) ( scale * lower );
+      high [ d ] = (uint64_t) ( scale * upper );
     }
-    std::vector < uint32_t > selected = low;
+    std::vector < uint64_t > selected = low;
     insertRectHelper ( selected, low, high, 0 );
   }
   
-  inline Rect CubicalComplex::geometryOfCube ( const std::vector < uint32_t > & cube ) const {
+  inline Rect CubicalComplex::geometryOfCube ( const std::vector < uint64_t > & cube ) const {
     int D = dimension ();
     Rect result ( D );
     for ( int d = 0; d < D; ++ d ) {
@@ -950,7 +950,7 @@ namespace chomp {
       
       return result;
     }
-    std::vector < uint32_t > cube = indexToCube ( i );
+    std::vector < uint64_t > cube = indexToCube ( i );
     
     // DEBUG
     Rect result = geometryOfCube ( cube );
