@@ -48,7 +48,6 @@ public:
 	
 private:
   /* Relative Complex */
-	CHOMP_COMPLEX(uint64_t);
   Complex * full;
 
 	public:
