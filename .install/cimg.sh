@@ -6,7 +6,9 @@
 SHELL_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $SHELL_DIR/parse.sh
 
+echo making $PREFIX/include
 mkdir -p $PREFIX/include
+echo Downloading CImg
 wget http://downloads.sourceforge.net/project/cimg/CImg_1.6.1.zip || exit 1
 unzip CImg_1.6.1.zip || exit 1
 mv CImg-1.6.1/CImg.h ${PREFIX}/include/CImg.h || exit 1
