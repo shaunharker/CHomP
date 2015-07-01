@@ -1,9 +1,8 @@
-# add the executable
 
-set ( LIBS      ${LIBS}
-                boost_system
-                boost_thread
-                boost_serialization )
+set ( LIBS ${LIBS}
+           ${X11_LIBRARIES}
+           ${CMAKE_THREAD_LIBS_INIT}
+           ${Boost_LIBRARIES} )
 
 set ( TARGETS chomp-cubical 
               chomp-matrix 
@@ -11,7 +10,7 @@ set ( TARGETS chomp-cubical
               chomp-greyscale-to-cubical)
 
 foreach ( TARGET ${TARGETS} ) 
-  add_executable ( ${TARGET} ${TARGET}.cpp ${HEADERS} )
+  add_executable ( ${TARGET} ${TARGET}.cpp )
   target_link_libraries ( ${TARGET} ${LIBS} ) 
 endforeach ( TARGET ) 
 

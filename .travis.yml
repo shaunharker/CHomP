@@ -1,0 +1,31 @@
+sudo: false
+language: cpp
+compiler:
+  - gcc
+#  - clang
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
+#    - clang
+notifications:
+  email:
+    recipients:
+      - sharker81@gmail.com
+    on_success: change
+    on_failure: always
+before_install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+  - PREFIX=$HOME/.local
+  - export PATH=$PREFIX/bin:$PATH
+install:
+  - pip install cpp-coveralls --user `whoami`
+  - ./.install/boost.sh chrono,system,thread,serialization
+  - ./.install/cimg.sh
+script: 
+  - ./install.sh --build=Debug
+after_success: 
+  - coveralls -e tests -E ".*lib.*" -E ".*usr.*" -E ".*boost.*" --gcov-options '\-lp' --gcov /usr/bin/gcov-4.8
