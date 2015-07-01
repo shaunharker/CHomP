@@ -2,13 +2,6 @@
 ## Parse command line arguments
 ## !! --> Also, will mkdir the install location if it does not exist!
 
-echo parse 
-echo $PREFIX
-echo $BUILDTYPE
-echo $SEARCHPATH
-echo $TEST
-echo $MASS
-echo "\"$@\""
 for i in "$@"; do case $i in
     -p=*|--prefix=*) PREFIX="${i#*=}";         shift;;
     -b=*|--build=*) BUILDTYPE="${i#*=}";       shift;;
@@ -31,11 +24,3 @@ if [ ! -w $PREFIX ]; then echo Permission to write to $PREFIX denied && exit 1; 
 if [ -z "$BUILDTYPE" ]; then BUILDTYPE=Release; fi
 if [ -z "$SEARCHPATH" ]; then SEARCHPATH=$PREFIX; fi
 if [ -d "$SEARCHPATH" ]; then SEARCHPATH=$(absolute $SEARCHPATH); else exit 1; fi
-
-echo parse 
-echo $PREFIX
-echo $BUILDTYPE
-echo $SEARCHPATH
-echo $TEST
-echo $MASS
-
