@@ -1,6 +1,6 @@
 #!/bin/bash
 # build.sh [--prefix=PREFIX] [--build=BUILDTYPE]    \
-#            [--search=SEARCHPATH] [--tests] [CMake arguments]
+#            [--search=SEARCHPATH] [--test] [CMake arguments]
 #  
 #  Build the project with the supplied configurations,
 #    or else default values.
@@ -10,7 +10,7 @@
 #     (or some other CMake recognizable build type)
 #   SEARCHPATH is an optional location to search for headers 
 #     and libraries (i.e. SEARCHPATH/include and SEARCHPATH/lib)
-#   If --tests is supplied then tests will be built.
+#   If --test is supplied then tests will be built.
 #   The default setting for PREFIX is /usr/local unless it is not writable
 #     in which case it is ~/.local.
 #   The default setting for BUILDTYPE is Release
@@ -32,13 +32,16 @@ CMAKE_ARGS+=$MASS
 
 ## Build 
 rm -rf build && mkdir build && cd build || exit 1
-cmake $CMAKE_ARGS ..                    || exit 1
-make && make install                    || exit 1
+cmake $CMAKE_ARGS .. && make            || exit 1
 
 ## Test
-if [ -z $TEST ]; then exit 0; fi
-make test
-if [ ! $? -eq 0 ]; then
-  cat Testing/Temporary/LastTest.log
-  exit 1
+if [[ "$TEST" == "YES" ]]; then
+  make test
+  if [ ! $? -eq 0 ]; then
+    cat Testing/Temporary/LastTest.log
+    exit 1
+  fi
 fi
+
+## Install
+make install || exit 1
