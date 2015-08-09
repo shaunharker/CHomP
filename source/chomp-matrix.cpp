@@ -3,7 +3,7 @@
 #define RINGDEFINED
 #include "chomp/Ring.h"
 using namespace chomp;
-typedef Long Ring;
+typedef GMP_Integer Ring;
 
 #include "chomp/MatrixComplex.h"
 #include "chomp/Generators.h"

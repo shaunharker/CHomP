@@ -14,6 +14,7 @@ list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib"
 if("${isSystemDir}" STREQUAL "-1")
    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif("${isSystemDir}" STREQUAL "-1")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules)
 
 #########
 # Flags #
@@ -30,6 +31,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG" )
 find_package(Boost 1.58.0 REQUIRED COMPONENTS chrono system thread serialization)
 find_package(Threads)
 find_package(X11 REQUIRED)
+find_package(GMP REQUIRED)
 
 #######################
 # Include Directories #

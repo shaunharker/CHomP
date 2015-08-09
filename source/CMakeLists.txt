@@ -2,7 +2,9 @@
 set ( LIBS ${LIBS}
            ${X11_LIBRARIES}
            ${CMAKE_THREAD_LIBS_INIT}
-           ${Boost_LIBRARIES} )
+           ${Boost_LIBRARIES} 
+           ${GMP_LIBRARIES}
+           ${GMPXX_LIBRARIES} )
 
 set ( TARGETS chomp-cubical 
               chomp-matrix 
