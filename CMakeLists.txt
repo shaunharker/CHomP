@@ -29,6 +29,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG" )
 
 find_package(Boost 1.58.0 REQUIRED COMPONENTS chrono system thread serialization)
 find_package(Threads)
+
+# The next line fixes an issue with Anaconda interfering with X11
+# on Mac OS X. It causes the system to check the usual install path first.
+# Otherwise, it tries to use the X11 in Anaconda which is not suitable.
+set(CMAKE_INCLUDE_PATH "/opt/X11/include;${CMAKE_INCLUDE_PATH}")
 find_package(X11 REQUIRED)
 
 #######################
@@ -41,7 +46,8 @@ include_directories (
   /opt/local/include 
   ${Boost_INCLUDE_DIRS} 
   ${USER_INCLUDE_PATH} 
-  ${X11_X11_INCLUDE_PATH} )
+  ${X11_INCLUDE_DIR} 
+  )
 
 #######################
 # Library Directories #
