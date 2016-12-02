@@ -8,25 +8,69 @@
 This software is a tool for computational homology for both cellular complexes and induced homology on maps. It is based on discrete Morse theory. It is used to compute Conley indices in the [Conley-Morse-Database](https://github.com/shaunharker/conley-morse-database) project.
 
 See "LICENSE" for license details.
-See "INSTALL" for installation notes.
+See "INSTALL" for more installation notes.
+
 
 ## Installation
 
-### Option 1. Install in default location.
+### Dependencies
 
-This option is particularly usable for macOS users with homebrew.
+* boost
+* CImg
+* X11
+
+### General Instructions
+
+* First install dependencies.
+* Then, either:
+
+#### Option 1. Install in default location.
 
 To install into the system, i.e. `/usr/local` install with
 
-./install.sh
+    ./install.sh
 
-### Option 2. Install in a
+#### Option 2. Install in a
+
 Install via
 
-./install.sh --prefix=/path/to/install/folder
+    ./install.sh --prefix=/path/to/install/folder
+
+### Specific instructions for macOS:
+
+For macOS the easiest way to install dependencies is with "homebrew" <http://brew.sh>.
+
+Install homebrew via
+
+```
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+
+Install dependencies via
+
+```
+brew install boost
+brew install cimg
+```
+
+To install X11, follow the instructions on <https://www.xquartz.org>
+
+To install CHomP:
+
+```
+git clone https://github.com/shaunharker/CHomP.git
+cd CHomP
+./install.sh
+```
+
+To test an example:
+
+```
+chomp-simplicial ./examples/simplex.simp
+```
 
 
-## Example usage
+## Examples
 
 ### Cubical complexes
 
