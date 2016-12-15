@@ -146,6 +146,11 @@ private:
 	/// The function reads the file and adds each simplex as well as all its faces
 	/// No one line can have more than 512 characters
 	void loadFromFile ( const char * FileName );
+	/// loadFromMaxSimplices.
+	/// the vector is a list of simplicies where an n-simplex is a list of integers 
+	/// "int_1 int_2 ...  int_{n+1} \n" each representing a vertex of the complex,
+	/// Assumption: The integers describing each simplex is listed in increasing value
+	void loadFromMaxSimplices (const std::vector< std::vector<int> > & max_simplices);
 	
 	void generateCoboundaryData ( void );
 	
@@ -181,16 +186,11 @@ inline void SimplicialComplex::loadFromFile ( const char * FileName) {
 	}
 	input_file . close ();
 	
-  //DEBUG
-  //std::cout << "Begin load debug.\n";
-	// for ( unsigned int i = 0; i < max_simplices . size (); ++ i ) {
-	//	for ( unsigned int vi = 0; vi < max_simplices [ i ] . size (); ++ vi ) {
-	//		std::cout << max_simplices [ i ] [ vi ] << " ";
-  //		}
-	//	std::cout << "\n";
-	//}
-	//std::cout << "End load debug.\n";
-	
+	loadFromMaxSimplices(max_simplices);
+}
+
+
+inline void SimplicialComplex::loadFromMaxSimplices (const std::vector< std::vector<int> > & max_simplices) {
 	boost::unordered_set < Simplex > processed_;
 	std::queue < Simplex > work_q;
 	BOOST_FOREACH ( const std::vector < int > & maximal, max_simplices ) {
