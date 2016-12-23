@@ -14,6 +14,7 @@ list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib"
 if("${isSystemDir}" STREQUAL "-1")
    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif("${isSystemDir}" STREQUAL "-1")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules)
 
 #########
 # Flags #
@@ -35,6 +36,7 @@ find_package(Threads)
 # Otherwise, it tries to use the X11 in Anaconda which is not suitable.
 set(CMAKE_INCLUDE_PATH "/opt/X11/include;${CMAKE_INCLUDE_PATH}")
 find_package(X11 REQUIRED)
+find_package(GMP REQUIRED)
 
 #######################
 # Include Directories #
