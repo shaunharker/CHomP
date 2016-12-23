@@ -10,6 +10,7 @@ addons:
     packages:
     - gcc-4.8
     - g++-4.8
+    - libgmp-dev
 #    - clang
 notifications:
   email:

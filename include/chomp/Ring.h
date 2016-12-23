@@ -141,7 +141,7 @@ private:
   mpz_class x;
 public:
   GMP_Integer ( void ) : x ( 0 ) {}
-  GMP_Integer ( int64_t x ) : x(x) {}
+  GMP_Integer ( int32_t x ) : x(x) {} // GMP does not allow conversions from 64-bit types here, strangely
   GMP_Integer ( const mpz_class& x) : x(x) {}
   
   bool invertible ( void ) const {
