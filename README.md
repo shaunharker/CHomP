@@ -30,7 +30,7 @@ To install into the system, i.e. `/usr/local` install with
 
     ./install.sh
 
-#### Option 2. Install in a
+#### Option 2. Install in a custom location.
 
 Install via
 
