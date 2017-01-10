@@ -17,6 +17,7 @@ See "INSTALL" for more installation notes.
 
 * cmake
 * boost
+* GMP
 * CImg
 * X11
 
@@ -53,6 +54,7 @@ Install dependencies via
 
 ```
 brew install cmake
+brew install gmp
 brew install boost
 brew install cimg
 ```
