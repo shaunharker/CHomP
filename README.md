@@ -15,6 +15,7 @@ See "INSTALL" for more installation notes.
 
 ### Dependencies
 
+* cmake
 * boost
 * CImg
 * X11
@@ -51,6 +52,7 @@ Install homebrew via
 Install dependencies via
 
 ```
+brew install cmake
 brew install boost
 brew install cimg
 ```
