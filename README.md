@@ -30,6 +30,8 @@ To install into the system, i.e. `/usr/local` install with
 
     ./install.sh
 
+In the event of an error (e.g. the installer says `Run with admin privileges or choose a non-system install path with —prefix`) then see the troubleshooting steps below.
+
 #### Option 2. Install in a custom location.
 
 Install via
@@ -123,6 +125,59 @@ Example: _(Torus; 1 2d-cell, 2 1d-cells, and 1 1d cell)_
 0 0 0
 1 0 0
 ```
+
+## Troubleshooting
+
+**Question.** The installer fails with the message
+
+    Run with admin privileges or choose a non-system install path with —prefix
+
+What do I do?
+
+**Answer.** The default install location is `/usr/local` and typing `./install.sh` is equivalent to typing `./install.sh --prefix=/usr/local`. The error indicates that `/usr/local` is owned by the system and is not writable. Thus it doesn't do the install unless you give it a different location to install or otherwise change the situation.
+
+Three explicit solutions are given below. The first two are for macOS users.
+
+**Solution 1.** Install `homebrew`.
+
+On macOS the package manager `homebrew` is widely used and sets the permissions on `/usr/local` to be writable. `CHomP` expects this is installed (as it is the simplest way to install the dependencies) and has made `/usr/local` writable. Therefore, if `homebrew` is not installed then installing it will likely solve the problem as it will fix the permissions on `/usr/local`.
+
+To check if `homebrew` is installed, type
+
+    brew help
+
+If this says `command not found` then `homebrew` is not installed. Instructions for installing homebrew can be found on <http://brew.sh>. Currently, it is as simple as running the following line on the terminal and following instructions:
+
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+**Solution 2.** Change the permissions on `/usr/local`
+
+On macOS permissions on `/usr/local` are typically made writable by user (thus preventing the above problem) when `homebrew` is installed.
+
+It is possible that an OS update has mucked up the permissions on `/usr/local` subsequent to `homebrew` being installed. In particular the El Capitan update was known to do this.
+
+Thus, the permissions on `/usr/local` are not suitable and need to be fixed. A known solution to this problem (<http://stackoverflow.com/questions/16432071/how-to-fix-homebrew-permissions>) is to type the following lines on the command line:
+
+    sudo chown -R "$USER":admin /usr/local
+    sudo chown -R "$USER":admin /Library/Caches/Homebrew
+
+**Solution 3.** Make a custom installation which is not to /usr/local
+
+_Note. This solution is not recommended to macOS users, but it IS recommended for Linux users who do not have the privileges to change the permissions on `/usr/local` or otherwise want a custom install location._
+
+To install to a custom location, use
+
+    ./install.sh --prefix=/path/to/where/you/want/it/installed
+
+This will install the executables to
+
+    /path/to/where/you/want/it/installed/bin
+
+Now update `~/.bashrc` to add this location to the `PATH` environmental variable, so that the command line can find the executables (e.g. `chomp-simplicial`). That is, add the line
+
+    export PATH=/path/to/where/you/want/it/installed/bin/:$PATH
+
+to the end of your `~/.bashrc` file (create one if it does not exist).
 
 ## More information
 
