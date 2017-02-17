@@ -6,6 +6,7 @@
 #define CHOMP_SIMPLICIALCOMPLEX_H
 
 #include <cstdlib>
+#include <cctype>
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -13,6 +14,8 @@
 #include <sstream>
 #include <queue>
 #include <algorithm>
+#include <stdexcept>
+#include <exception>
 
 #include "boost/unordered_set.hpp"
 
@@ -166,23 +169,32 @@ inline void SimplicialComplex::loadFromFile ( const char * FileName) {
 	//char *ptr;
 	std::ifstream input_file ( FileName ); 
 	if ( not input_file . good () ) {
-		std::cout << "SimplicialComplex::loadFromFile. Fatal Error. " 
-		<< FileName << " not found.\n";
-    exit ( 1 );
+		std::cerr << "SimplicialComplex::loadFromFile. Fatal Error:\n  " << FileName << " not found.\n";
+		throw std::runtime_error("File Parsing Error: File not found");
   } /* if */
 	//int index = 0;
 	
 	//Simplex s;
 	std::vector< std::vector<int> > max_simplices;
+	std::size_t line_number = 0;
 	while ( not input_file . eof () ) {
+		++ line_number;
 		std::string line;
 		getline( input_file, line );
+		// Check that line is sanitized. If not, throw.
+		for ( int i = 0; i < line.size(); ++ i ) {
+			if ( ! ( std::isspace(line[i]) || std::isdigit(line[i]) ) ) {
+				std::cerr << "SimplicialComplex::loadFromFile. Fatal Error:\n  Cannot parse line #" << line_number << " of " << FileName << "\n";
+				std::cerr << " --> " << line << "\n";
+				throw std::runtime_error("File Parsing Error: Invalid file");
+			}
+		}
+		std::vector < int > simplex;
 		std::istringstream is( line );
-		if ( line . length () == 0 ) continue;
-		max_simplices . push_back ( std::vector < int > () );
 		int v;
-		while ( is >> v ) max_simplices . back () . push_back ( v );
-		std::sort ( max_simplices . back () . begin (), max_simplices . back () . end () );
+		while ( is >> v ) simplex . push_back ( v );
+		std::sort ( simplex . begin (), simplex . end () );
+		if ( simplex.size() > 0 ) max_simplices.push_back(simplex);
 	}
 	input_file . close ();
 	

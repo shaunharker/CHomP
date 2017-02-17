@@ -17,7 +17,11 @@ int main ( int argc, char * argv [] ) {
     std::cout << "Give a filename.\n";
     abort ();
 	} else {
-	  complex.loadFromFile ( argv [ 1 ] );
+    try { 
+	   complex.loadFromFile ( argv [ 1 ] );
+    } catch ( ... ) {
+      exit(1);
+    }
 	}
   
   std::cout << "Betti Numbers: ";
