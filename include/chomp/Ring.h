@@ -12,7 +12,6 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/nvp.hpp>
 
-#include <gmpxx.h>
 
 #include "Field.h"
 
@@ -53,7 +52,7 @@ public:
       exit(1);
     }
   }
-  
+
   Long balanced_value ( void ) const {
     return x;
   }
@@ -63,37 +62,37 @@ public:
     result . integrity ();
     return result;
   }
-  
+
   Long & operator += ( const Long & rhs ) {
     x += rhs . x;
     integrity ();
     return *this;
   }
-  
+
   Long & operator -= ( const Long & rhs ) {
     x -= rhs . x;
     integrity ();
     return *this;
   }
-  
+
   Long & operator *= ( const Long & rhs ) {
     x *= rhs . x;
     integrity ();
     return *this;
   }
-  
+
   Long operator + ( const Long & rhs ) const {
     Long result ( x + rhs . x );
     result . integrity ();
     return result;
   }
-  
+
   Long operator - ( const Long & rhs ) const {
     Long result ( x - rhs . x );
     result . integrity ();
     return result;
   }
-  
+
   Long operator * ( const Long & rhs ) const {
     Long result ( x * rhs . x );
     result . integrity ();
@@ -105,7 +104,7 @@ public:
     result . integrity ();
     return result;
   }
-  
+
   bool operator == ( const Long & rhs ) const {
     return x == rhs . x;
   }
@@ -113,17 +112,17 @@ public:
   bool operator != ( const Long & rhs ) const {
     return x != rhs . x;
   }
-  
+
   bool operator < ( const Long & rhs ) const {
     return x < rhs . x;
   }
-  
+
   bool operator > ( const Long & rhs ) const {
     return x > rhs . x;
   }
-  
+
   friend std::ostream & operator << ( std::ostream & outstream, const Long & rhs );
-  
+
   friend class boost::serialization::access;
   template < class Archive >
   void serialize ( Archive & ar , const unsigned int version ) {
@@ -132,100 +131,6 @@ public:
 };
 
 inline std::ostream & operator << ( std::ostream & outstream, const Long & rhs ) {
-  outstream << rhs . x;
-  return outstream;
-}
-
-class GMP_Integer {
-private:
-  mpz_class x;
-public:
-  GMP_Integer ( void ) : x ( 0 ) {}
-  GMP_Integer ( int32_t x ) : x(x) {} // GMP does not allow conversions from 64-bit types here, strangely
-  GMP_Integer ( const mpz_class& x) : x(x) {}
-  
-  bool invertible ( void ) const {
-    if ( x == 1 ) return true;
-    if ( x == -1 ) return true;
-    return false;
-  }
-  
-  GMP_Integer balanced_value ( void ) const {
-    return x;
-  }
-
-  GMP_Integer operator - ( void ) const {
-    return mpz_class(-x);
-  }
-  
-  GMP_Integer & operator += ( const GMP_Integer & rhs ) {
-    x += rhs . x;
-    return *this;
-  }
-  
-  GMP_Integer & operator -= ( const GMP_Integer & rhs ) {
-    x -= rhs . x;
-    return *this;
-  }
-  
-  GMP_Integer & operator *= ( const GMP_Integer & rhs ) {
-    x *= rhs . x;
-    return *this;
-  }
-  
-  GMP_Integer operator + ( const GMP_Integer & rhs ) const {
-    return mpz_class(x + rhs . x);
-  }
-  
-  GMP_Integer operator - ( const GMP_Integer & rhs ) const {
-    return mpz_class(x - rhs . x);
-  }
-  
-  GMP_Integer operator * ( const GMP_Integer & rhs ) const {
-    return mpz_class(x * rhs . x);
-  }
-
-  GMP_Integer operator / ( const GMP_Integer & rhs ) const {
-    return mpz_class(x / rhs . x);
-  }
-  
-  bool operator == ( const GMP_Integer & rhs ) const {
-    return x == rhs . x;
-  }
-
-  bool operator != ( const GMP_Integer & rhs ) const {
-    return x != rhs . x;
-  }
-  
-  bool operator < ( const GMP_Integer & rhs ) const {
-    return x < rhs . x;
-  }
-  
-  bool operator > ( const GMP_Integer & rhs ) const {
-    return x > rhs . x;
-  }
-  
-  friend std::ostream & operator << ( std::ostream & outstream, const GMP_Integer & rhs );
-  
-  friend class boost::serialization::access;
-  template < class Archive >
-  void save(Archive & ar, const unsigned int version) const
-  {
-      const std::string mpz_string = x.get_str();
-      ar & boost::serialization::make_nvp("mpz",mpz_string);
-  }
-  template<class Archive>
-  void load(Archive & ar, const unsigned int version)
-  {
-      std::string mpz_string;
-      ar & boost::serialization::make_nvp("mpz",mpz_string);
-      x.set_str(mpz_string,10);
-  }
-  BOOST_SERIALIZATION_SPLIT_MEMBER()
-  
-};
-
-inline std::ostream & operator << ( std::ostream & outstream, const GMP_Integer & rhs ) {
   outstream << rhs . x;
   return outstream;
 }
@@ -239,7 +144,7 @@ inline std::ostream & operator << ( std::ostream & outstream, const GMP_Integer 
 //typedef Long Ring;
 typedef Zp<5> Ring;
 #endif
-  
+
 } // namespace chomp
 
 #endif

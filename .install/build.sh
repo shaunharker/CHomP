@@ -1,14 +1,14 @@
 #!/bin/bash
 # build.sh [--prefix=PREFIX] [--build=BUILDTYPE]    \
 #            [--search=SEARCHPATH] [--test] [CMake arguments]
-#  
+#
 #  Build the project with the supplied configurations,
 #    or else default values.
 #
 #   PREFIX gives the location to install.
-#   BUILDTYPE is either Debug or Release 
+#   BUILDTYPE is either Debug or Release
 #     (or some other CMake recognizable build type)
-#   SEARCHPATH is an optional location to search for headers 
+#   SEARCHPATH is an optional location to search for headers
 #     and libraries (i.e. SEARCHPATH/include and SEARCHPATH/lib)
 #   If --test is supplied then tests will be built.
 #   The default setting for PREFIX is /usr/local unless it is not writable
@@ -30,7 +30,7 @@ CMAKE_ARGS+=" -DUSER_LIBRARY_PATH=${SEARCHPATH}/lib"
 CMAKE_ARGS+=" -DCMAKE_BUILD_TYPE=$BUILDTYPE"
 CMAKE_ARGS+=$MASS
 
-## Build 
+## Build
 rm -rf build && mkdir build && cd build || exit 1
 cmake $CMAKE_ARGS .. && make            || exit 1
 
@@ -42,6 +42,3 @@ if [[ "$TEST" == "YES" ]]; then
     exit 1
   fi
 fi
-
-## Install
-make install || exit 1

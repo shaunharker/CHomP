@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 2.6) 
-project (CHomP) 
+cmake_minimum_required (VERSION 2.6)
+project (CHomP)
 
 #########
 # rpath #
@@ -7,7 +7,7 @@ project (CHomP)
 
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_SKIP_BUILD_RPATH  FALSE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
@@ -36,28 +36,28 @@ find_package(Threads)
 # Otherwise, it tries to use the X11 in Anaconda which is not suitable.
 set(CMAKE_INCLUDE_PATH "/opt/X11/include;${CMAKE_INCLUDE_PATH}")
 find_package(X11 REQUIRED)
-find_package(GMP REQUIRED)
+#find_package(GMP REQUIRED)
 
 #######################
 # Include Directories #
 #######################
 
-include_directories ( 
+include_directories (
   ${CMAKE_SOURCE_DIR}/include
-  /usr/local/include 
-  /opt/local/include 
-  ${Boost_INCLUDE_DIRS} 
-  ${USER_INCLUDE_PATH} 
-  ${X11_INCLUDE_DIR} 
+  /usr/local/include
+  /opt/local/include
+  ${Boost_INCLUDE_DIRS}
+  ${USER_INCLUDE_PATH}
+  ${X11_INCLUDE_DIR}
   )
 
 #######################
 # Library Directories #
 #######################
 
-link_directories ( 
-  ${USER_LIBRARY_PATH} 
-  /usr/local/lib 
+link_directories (
+  ${USER_LIBRARY_PATH}
+  /usr/local/lib
   /opt/local/lib )
 
 ###########
@@ -88,10 +88,9 @@ install(DIRECTORY include/ DESTINATION include/ )
 enable_testing()
 set(bin ${CMAKE_BINARY_DIR}/bin )
 set(examples "${CMAKE_SOURCE_DIR}/examples")
-add_test( circle ${CMAKE_SOURCE_DIR}/tests/circle.test ${bin} ${examples})
-add_test( rubik ${CMAKE_SOURCE_DIR}/tests/segment.test ${bin} ${examples})
-add_test( simplex ${CMAKE_SOURCE_DIR}/tests/simplex.test ${bin} ${examples})
-add_test( square ${CMAKE_SOURCE_DIR}/tests/square.test ${bin} ${examples})
-add_test( square_relative ${CMAKE_SOURCE_DIR}/tests/square_relative.test ${bin} ${examples})
-add_test( square_withhole ${CMAKE_SOURCE_DIR}/tests/square_withhole.test ${bin} ${examples})
-
+#add_test( circle ${CMAKE_SOURCE_DIR}/tests/circle.test ${bin} ${examples})
+#add_test( rubik ${CMAKE_SOURCE_DIR}/tests/segment.test ${bin} ${examples})
+#add_test( simplex ${CMAKE_SOURCE_DIR}/tests/simplex.test ${bin} ${examples})
+#add_test( square ${CMAKE_SOURCE_DIR}/tests/square.test ${bin} ${examples})
+#add_test( square_relative ${CMAKE_SOURCE_DIR}/tests/square_relative.test ${bin} ${examples})
+#add_test( square_withhole ${CMAKE_SOURCE_DIR}/tests/square_withhole.test ${bin} ${examples})
