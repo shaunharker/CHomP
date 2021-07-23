@@ -1,6 +1,5 @@
 
 set ( LIBS ${LIBS}
-           ${X11_LIBRARIES}
            ${CMAKE_THREAD_LIBS_INIT}
            ${Boost_LIBRARIES} )
 

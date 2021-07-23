@@ -15,17 +15,29 @@ See "INSTALL" for more installation notes.
 
 * cmake
 * boost
-* X11
 
-### Example installation on Ubuntu 20.04 (YMMV)
+### Example installation on Ubuntu 20.04 with conda installed
 
 ```
+sudo apt-get install cmake
 conda install boost
-sudo apt-get install libx11-dev
 git clone https://github.com/shaunharker/CHomP.git
-git checkout lite
 cd CHomP
-./install.sh
+git checkout lite
+./install.sh # doesn't install to system, just to ./build/bin
+./build/bin/chomp-simplicial-z2 ./examples/torus.simp
+./build/bin/chomp-simplicial-z3 ./examples/torus.simp
+```
+
+### Example installation on macOS with homebrew
+
+```
+brew install cmake
+brew install boost
+git clone https://github.com/shaunharker/CHomP.git
+cd CHomP
+git checkout lite
+./install.sh # doesn't install to system, just to ./build/bin
 ./build/bin/chomp-simplicial-z2 ./examples/torus.simp
 ./build/bin/chomp-simplicial-z3 ./examples/torus.simp
 ```

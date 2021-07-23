@@ -3,41 +3,22 @@ CHomP Installation Instructions.
 PREREQUISITES
 =============
 
-First install Boost. On a Mac this can be
-accomplished by obtaining the "Homebrew" software and
-typing:
+First install cmake and Boost.
 
+On a Mac this can be accomplished by obtaining the
+"Homebrew" software and typing:
+
+brew install cmake
 brew install boost
 
-Optionally, install CImg and X11 (for graphics).
-
-On a Mac this can be accomplished with:
-brew install cimg
-
-and by downloading and installing XQuartz. 
-Note that you will need to log out and log back in after
-XQuartz installs. 
 
 INSTALLATION
 ============
-To install CHomP, type 
+To install CHomP, type
 
-./install.sh [install-prefix]
+./install.sh
 
-If [install-directory] is omitted the installation
-will be to /usr/local on Mac OS X or Linux (which is
-recommended.)
-
-What is installed:
-
-(1) Header files for CHomP in
- /usr/local/include/chomp/
-
-(2) A patch to boost to allow serialization of unordered types
- /usr/local/include/boost/serialization/*.hpp
-
-(3) Binaries for CHomP in
- /usr/local/bin/
+This will create executables in ./build/bin/
 
 If you encounter difficulties contact Shaun Harker
 sharker81@gmail.com
