@@ -85,9 +85,9 @@ install(DIRECTORY include/ DESTINATION include/ )
 # Tests #
 #########
 
-enable_testing()
-set(bin ${CMAKE_BINARY_DIR}/bin )
-set(examples "${CMAKE_SOURCE_DIR}/examples")
+#enable_testing()
+#set(bin ${CMAKE_BINARY_DIR}/bin )
+#set(examples "${CMAKE_SOURCE_DIR}/examples")
 #add_test( circle ${CMAKE_SOURCE_DIR}/tests/circle.test ${bin} ${examples})
 #add_test( rubik ${CMAKE_SOURCE_DIR}/tests/segment.test ${bin} ${examples})
 #add_test( simplex ${CMAKE_SOURCE_DIR}/tests/simplex.test ${bin} ${examples})

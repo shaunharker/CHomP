@@ -35,10 +35,9 @@ rm -rf build && mkdir build && cd build || exit 1
 cmake $CMAKE_ARGS .. && make            || exit 1
 
 ## Test
-if [[ "$TEST" == "YES" ]]; then
-  make test
-  if [ ! $? -eq 0 ]; then
-    cat Testing/Temporary/LastTest.log
-    exit 1
-  fi
-fi
+#  make test
+#  if [ ! $? -eq 0 ]; then
+#    cat Testing/Temporary/LastTest.log
+#    exit 1
+#  fi
+#fi
