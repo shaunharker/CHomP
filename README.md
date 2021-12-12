@@ -187,5 +187,4 @@ to the end of your `~/.bashrc` file (create one if it does not exist).
 
 Documentation can be found [here](http://chomp.rutgers.edu/Projects/Databases_for_the_Global_Dynamics/software/LorentzCenterAugust2014.pdf).
 
-Please e-mail Shaun Harker sharker81@gmail.com
-about problems or feature requests.
+Please create issues on github and if possible contribute submit pull requests for bug fixes. I do not have much time to spend on maintenance of this project unfortunately. -- Shaun Harker, 2021-12-12-1433
