@@ -12,6 +12,8 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include <boost/serialization/split_member.hpp>
+
 #include <gmpxx.h>
 
 #include "Field.h"
@@ -221,8 +223,8 @@ public:
       ar & boost::serialization::make_nvp("mpz",mpz_string);
       x.set_str(mpz_string,10);
   }
-  BOOST_SERIALIZATION_SPLIT_MEMBER()
-  
+   BOOST_SERIALIZATION_SPLIT_MEMBER();
+
 };
 
 inline std::ostream & operator << ( std::ostream & outstream, const GMP_Integer & rhs ) {
