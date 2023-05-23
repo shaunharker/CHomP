@@ -15,3 +15,4 @@ source/greyscale-to-cubical
 source/stamp-h1
 tests/*log
 tests/*trs
+build
