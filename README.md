@@ -75,6 +75,13 @@ To test an example:
 chomp-simplicial ./examples/simplex.simp
 ```
 
+### Specific instructions for Debian/Ubuntu
+
+Install dependencies via
+
+```
+sudo apt install libboost-all-dev cmake libgmp-dev cimg-dev
+```
 
 ## Examples
 
