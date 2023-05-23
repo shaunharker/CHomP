@@ -11,6 +11,7 @@
 
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_member.hpp>
 
 #include <gmpxx.h>
 
